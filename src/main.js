@@ -17,8 +17,6 @@ function createRectangle(parentRect) {
     // Set up base classes and data attributes
     newRect.className = 'splittable-rect rectangle-base flex items-center justify-center';
     newRect.setAttribute('data-split-state', 'unsplit');
-    newRect.style.minWidth = '5%';
-    newRect.style.minHeight = '5%';
 
     // Text to show in the box
     newRect.innerHTML = currentId;
@@ -187,7 +185,7 @@ function onDrag(event) {
     let newSizeB = startSizeB - delta;
 
     // Minimum size constraint (e.g., 5% of parent's original size)
-    const minSize = activeDivider.totalSize * 0.05;
+    const minSize = 0;
 
     if (newSizeA < minSize) {
         newSizeA = minSize;
