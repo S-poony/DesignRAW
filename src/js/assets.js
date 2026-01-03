@@ -133,7 +133,7 @@ export function setupDropHandlers() {
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
-            img.style.pointerEvents = 'none'; // Allow clicking through to split
+            // img.style.pointerEvents = 'none'; // Removed to allow clicks to bubble or be handled directly
 
             // Create remove button
             const removeBtn = document.createElement('button');

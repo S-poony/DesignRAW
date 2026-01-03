@@ -17,6 +17,18 @@ export function handleSplitClick(event) {
         return;
     }
 
+    // Stop propagation so clicking a leaf doesn't trigger parent split handlers
+    event.stopPropagation();
+
+    // if contains image, toggle object-fit instead of splitting
+    const img = rectElement.querySelector('img');
+    if (img) {
+        saveState();
+        const currentFit = img.style.objectFit || 'cover';
+        img.style.objectFit = currentFit === 'cover' ? 'contain' : 'cover';
+        return;
+    }
+
     saveState();
     rectElement.setAttribute('data-split-state', 'split');
 

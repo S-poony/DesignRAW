@@ -61,19 +61,23 @@ async function performExport(format) {
 
     // 2. Swap low-res images for high-res ones in the clone
     const imageElements = clone.querySelectorAll('img[data-asset-id]');
-    const swapPromises = Array.from(imageElements).map(img => {
+    const swapPromises = Array.from(imageElements).map((img, index) => {
         const assetId = img.getAttribute('data-asset-id');
         const asset = importedAssets.find(a => a.id === assetId);
+
+        // Get the current object-fit from the original paper image
+        const originalImages = paper.querySelectorAll('img[data-asset-id]');
+        const currentFit = originalImages[index] ? originalImages[index].style.objectFit || 'cover' : 'cover';
+
         if (asset && asset.fullResData) {
             return new Promise((resolve) => {
                 const tempImg = new Image();
                 tempImg.onload = () => {
-                    // Workaround for html2canvas object-fit: cover
-                    // We use background-image on the parent rectangle
+                    // Workaround for html2canvas object-fit
                     const parent = img.parentElement;
                     if (parent) {
                         parent.style.backgroundImage = `url(${asset.fullResData})`;
-                        parent.style.backgroundSize = 'cover';
+                        parent.style.backgroundSize = currentFit;
                         parent.style.backgroundPosition = 'center';
                         parent.style.backgroundRepeat = 'no-repeat';
                         img.style.display = 'none'; // Hide the original img tag
