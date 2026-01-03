@@ -322,3 +322,36 @@ hr {
     cursor: cell !important;
     /* Indicates "selection for action" or "delete" */
 }
+
+/* Image removal button */
+.remove-image-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #d1d5db;
+    color: #374151;
+    font-size: 20px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s;
+    padding: 0;
+    padding-bottom: 2px;
+    /* Visual adjustment for the '×' character */
+}
+
+.remove-image-btn:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #dc2626;
+}
+
+.splittable-rect:hover .remove-image-btn {
+    display: flex;
+}

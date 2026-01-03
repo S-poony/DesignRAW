@@ -124,6 +124,7 @@ export function setupDropHandlers() {
 
             // Clear existing text/content
             target.innerHTML = '';
+            target.style.position = 'relative'; // Ensure relative positioning for button
 
             // Create image element
             const img = document.createElement('img');
@@ -134,7 +135,20 @@ export function setupDropHandlers() {
             img.style.objectFit = 'cover';
             img.style.pointerEvents = 'none'; // Allow clicking through to split
 
+            // Create remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-image-btn';
+            removeBtn.innerHTML = '×';
+            removeBtn.title = 'Remove image';
+            removeBtn.onclick = (event) => {
+                event.stopPropagation();
+                saveState();
+                target.innerHTML = target.id.replace('rect-', ''); // Restore label
+                target.style.position = '';
+            };
+
             target.appendChild(img);
+            target.appendChild(removeBtn);
             window._draggedAsset = null;
         }
     });
