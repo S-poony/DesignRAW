@@ -32,7 +32,32 @@
                 <div id="asset-list" class="asset-list">
                     <!-- Assets will appear here -->
                 </div>
+                <hr>
+                <button id="export-layout-btn" class="btn-secondary">Export Layout</button>
             </aside>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Export Layout</h2>
+            <p>Select your preferred format:</p>
+            <div class="export-options">
+                <label>
+                    <input type="radio" name="export-format" value="png" checked> PNG Image
+                </label>
+                <label>
+                    <input type="radio" name="export-format" value="jpeg"> JPEG Image
+                </label>
+                <label>
+                    <input type="radio" name="export-format" value="pdf"> PDF Document
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-export" class="btn-text">Cancel</button>
+                <button id="confirm-export" class="btn-primary">Download</button>
+            </div>
         </div>
     </div>
 

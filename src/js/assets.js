@@ -1,6 +1,6 @@
 import { saveState } from './history.js';
 
-let importedAssets = [];
+export let importedAssets = []; // This will act as our asset registry
 
 export function setupAssetHandlers() {
     const importBtn = document.getElementById('import-assets-btn');
@@ -35,6 +35,7 @@ async function processFile(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
+            const fullResData = e.target.result;
             const img = new Image();
             img.onload = () => {
                 // Create a low-quality version for the preview and initial placement
@@ -67,10 +68,11 @@ async function processFile(file) {
                 resolve({
                     id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                     name: file.name,
-                    data: lowResData
+                    lowResData: lowResData,
+                    fullResData: fullResData // Store original high-res data for export
                 });
             };
-            img.src = e.target.result;
+            img.src = fullResData;
         };
         reader.readAsDataURL(file);
     });
@@ -85,7 +87,7 @@ function renderAssetList() {
         const item = document.createElement('div');
         item.className = 'asset-item';
         item.draggable = true;
-        item.innerHTML = `<img src="${asset.data}" alt="${asset.name}" title="${asset.name}">`;
+        item.innerHTML = `<img src="${asset.lowResData}" alt="${asset.name}" title="${asset.name}">`;
 
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', asset.id);
@@ -125,7 +127,8 @@ export function setupDropHandlers() {
 
             // Create image element
             const img = document.createElement('img');
-            img.src = asset.data;
+            img.src = asset.lowResData;
+            img.setAttribute('data-asset-id', asset.id); // Track for export
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
