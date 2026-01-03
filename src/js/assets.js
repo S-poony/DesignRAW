@@ -1,4 +1,8 @@
 import { saveState } from './history.js';
+import { state } from './state.js';
+import { findNodeById } from './layout.js';
+import { renderLayout } from './renderer.js';
+import { A4_PAPER_ID } from './constants.js';
 
 export let importedAssets = []; // This will act as our asset registry
 
@@ -6,7 +10,6 @@ export function setupAssetHandlers() {
     const importBtn = document.getElementById('import-assets-btn');
     if (!importBtn) return;
 
-    // Create a hidden file input
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.multiple = true;
@@ -38,8 +41,6 @@ async function processFile(file) {
             const fullResData = e.target.result;
             const img = new Image();
             img.onload = () => {
-                // Create a low-quality version for the preview and initial placement
-                // We'll resize it to a maximum of 800px on the longest side
                 const canvas = document.createElement('canvas');
                 const maxDim = 800;
                 let width = img.width;
@@ -62,14 +63,13 @@ async function processFile(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Use a lower quality JPEG to save memory/state size
                 const lowResData = canvas.toDataURL('image/jpeg', 0.6);
 
                 resolve({
                     id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                     name: file.name,
                     lowResData: lowResData,
-                    fullResData: fullResData // Store original high-res data for export
+                    fullResData: fullResData
                 });
             };
             img.src = fullResData;
@@ -91,105 +91,72 @@ function renderAssetList() {
 
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', asset.id);
-            // We'll store the asset data globally or in a way that the drop handler can access it
             window._draggedAsset = asset;
+            window._sourceRect = null;
         });
 
         assetList.appendChild(item);
     });
 }
 
-// Helper to attach drag handlers to an image element within a rectangle
-export function attachImageDragHandlers(img, asset, hostRect) {
+export function attachImageDragHandlers(img, asset, hostRectElement) {
     img.draggable = true;
     img.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', asset.id);
         window._draggedAsset = asset;
-        window._sourceRect = hostRect;
-        // Optional: add a class to source to indicate it's being moved
-        hostRect.classList.add('moving-image');
+        window._sourceRect = hostRectElement;
+        hostRectElement.classList.add('moving-image');
     });
 
     img.addEventListener('dragend', () => {
-        hostRect.classList.remove('moving-image');
-        window._sourceRect = null;
+        hostRectElement.classList.remove('moving-image');
     });
 }
 
-// Drop handler for rectangles
 export function setupDropHandlers() {
-    // This will be called on initialization to handle the paper container
-    const paper = document.getElementById('a4-paper');
+    const paper = document.getElementById(A4_PAPER_ID);
     if (!paper) return;
 
     paper.addEventListener('dragover', (e) => {
-        // Only allow drop if it's an asset and the target is a leaf rectangle
-        const target = e.target.closest('.splittable-rect');
-        if (target && target.getAttribute('data-split-state') === 'unsplit') {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
+        const targetElement = e.target.closest('.splittable-rect');
+        if (targetElement) {
+            const node = findNodeById(state.layout, targetElement.id);
+            if (node && node.splitState === 'unsplit') {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            }
         }
     });
 
     paper.addEventListener('drop', (e) => {
-        const target = e.target.closest('.splittable-rect');
-        if (target && target.getAttribute('data-split-state') === 'unsplit' && window._draggedAsset) {
+        const targetElement = e.target.closest('.splittable-rect');
+        const asset = window._draggedAsset;
+
+        if (targetElement && asset) {
+            const targetNode = findNodeById(state.layout, targetElement.id);
+            if (!targetNode || targetNode.splitState === 'split') return;
+
             e.preventDefault();
-            saveState(); // Save state before adding image
+            saveState();
 
-            const asset = window._draggedAsset;
-
-            // Clear existing text/content
-            target.innerHTML = '';
-            target.style.position = 'relative'; // Ensure relative positioning for button
-
-            // Create image element
-            const img = document.createElement('img');
-            img.src = asset.lowResData;
-            img.setAttribute('data-asset-id', asset.id); // Track for export
-            img.style.width = '100%';
-            img.style.height = '100%';
-
-            // Preserve object-fit if moving between rectangles
-            let currentFit = 'cover';
+            let fit = 'cover';
             if (window._sourceRect) {
-                const sourceImg = window._sourceRect.querySelector('img');
-                if (sourceImg) {
-                    currentFit = sourceImg.style.objectFit || 'cover';
+                const sourceNode = findNodeById(state.layout, window._sourceRect.id);
+                if (sourceNode && sourceNode.image) {
+                    fit = sourceNode.image.fit;
+                    sourceNode.image = null;
                 }
             }
-            img.style.objectFit = currentFit;
 
-            // Attach drag handlers for moving image between rectangles
-            attachImageDragHandlers(img, asset, target);
-
-            // Create remove button
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-image-btn';
-            removeBtn.innerHTML = '×';
-            removeBtn.title = 'Remove image';
-            removeBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                saveState();
-                const hostRect = event.currentTarget.closest('.splittable-rect');
-                if (hostRect) {
-                    hostRect.innerHTML = hostRect.id.replace('rect-', ''); // Restore label
-                    hostRect.style.position = '';
-                }
-            });
-
-            target.appendChild(img);
-            target.appendChild(removeBtn);
-
-            // If this was a move from another rectangle, clear the source
-            if (window._sourceRect && window._sourceRect !== target) {
-                window._sourceRect.innerHTML = window._sourceRect.id.replace('rect-', ''); // Restore label
-                window._sourceRect.style.position = '';
-            }
+            targetNode.image = {
+                assetId: asset.id,
+                fit: fit
+            };
 
             window._draggedAsset = null;
             window._sourceRect = null;
+
+            renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
         }
     });
 }

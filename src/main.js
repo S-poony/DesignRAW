@@ -2,6 +2,9 @@ import { undo, redo } from './js/history.js';
 import { handleSplitClick, rebindEvents } from './js/layout.js';
 import { setupAssetHandlers, setupDropHandlers } from './js/assets.js';
 import { setupExportHandlers } from './js/export.js';
+import { state } from './js/state.js';
+import { renderLayout } from './js/renderer.js';
+import { marked } from 'marked';
 
 function setupGlobalHandlers() {
     window.addEventListener('keydown', (e) => {
@@ -42,19 +45,15 @@ function setupGlobalHandlers() {
 }
 
 function initialize() {
-    const initialRect = document.getElementById('rect-1');
-    if (initialRect) {
-        initialRect.addEventListener('click', handleSplitClick);
-    }
-
     setupAssetHandlers();
     setupDropHandlers();
     setupExportHandlers();
     setupGlobalHandlers();
     loadShortcuts();
-}
 
-import { marked } from 'marked';
+    // Initial render from state
+    renderLayout(document.getElementById('a4-paper'), state.layout);
+}
 
 async function loadShortcuts() {
     const container = document.getElementById('shortcuts-content');
@@ -76,4 +75,8 @@ async function loadShortcuts() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initialize);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+} else {
+    initialize();
+}

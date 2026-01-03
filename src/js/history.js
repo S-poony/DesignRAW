@@ -5,9 +5,8 @@ let undoStack = [];
 let redoStack = [];
 
 export function saveState() {
-    const paper = document.getElementById(A4_PAPER_ID);
     undoStack.push({
-        html: paper.innerHTML,
+        layout: JSON.parse(JSON.stringify(state.layout)),
         currentId: state.currentId
     });
     if (undoStack.length > MAX_HISTORY) {
@@ -19,9 +18,8 @@ export function saveState() {
 export function undo(rebindCallback) {
     if (undoStack.length === 0) return;
 
-    const paper = document.getElementById(A4_PAPER_ID);
     redoStack.push({
-        html: paper.innerHTML,
+        layout: JSON.parse(JSON.stringify(state.layout)),
         currentId: state.currentId
     });
 
@@ -32,9 +30,8 @@ export function undo(rebindCallback) {
 export function redo(rebindCallback) {
     if (redoStack.length === 0) return;
 
-    const paper = document.getElementById(A4_PAPER_ID);
     undoStack.push({
-        html: paper.innerHTML,
+        layout: JSON.parse(JSON.stringify(state.layout)),
         currentId: state.currentId
     });
 
@@ -43,8 +40,7 @@ export function redo(rebindCallback) {
 }
 
 function restoreState(snapshot, rebindCallback) {
-    const paper = document.getElementById(A4_PAPER_ID);
-    paper.innerHTML = snapshot.html;
+    state.layout = snapshot.layout;
     updateCurrentId(snapshot.currentId);
     if (rebindCallback) rebindCallback();
 }

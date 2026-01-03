@@ -1,110 +1,84 @@
 import { A4_PAPER_ID } from './constants.js';
 import { state } from './state.js';
 import { saveState } from './history.js';
-import { createRectangle, createDivider } from './utils.js';
-import { attachImageDragHandlers, importedAssets } from './assets.js';
+import { renderLayout } from './renderer.js';
+
+// Helper to find node in the layout tree
+export function findNodeById(root, id) {
+    if (root.id === id) return root;
+    if (root.children) {
+        for (const child of root.children) {
+            const found = findNodeById(child, id);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
+// Helper to find parent node in the layout tree
+export function findParentNode(root, childId) {
+    if (root.children) {
+        if (root.children.some(c => c.id === childId)) return root;
+        for (const child of root.children) {
+            const found = findParentNode(child, childId);
+            if (found) return found;
+        }
+    }
+    return null;
+}
 
 export function handleSplitClick(event) {
     // If click was on the remove button, don't do anything here
-    // The button has its own click handler with stopPropagation()
     if (event.target.closest('.remove-image-btn')) {
         return;
     }
 
     const rectElement = event.currentTarget;
+    const node = findNodeById(state.layout, rectElement.id);
+    if (!node || node.splitState === 'split') return;
+
+    // Stop propagation so clicking a leaf doesn't trigger parent split handlers
+    event.stopPropagation();
 
     // Ctrl + Click (without Shift) = Delete
     if (event.ctrlKey && !event.shiftKey) {
-        event.stopPropagation();
         saveState();
         deleteRectangle(rectElement);
         return;
     }
 
-    if (rectElement.getAttribute('data-split-state') === 'split') {
-        return;
-    }
-
-    // Stop propagation so clicking a leaf doesn't trigger parent split handlers
-    event.stopPropagation();
-
-    // Image logic
-    const img = rectElement.querySelector('img');
-    const removeBtn = rectElement.querySelector('.remove-image-btn');
-
-    if (img && !event.shiftKey) {
-        // Toggle object-fit instead of splitting if Shift is not held
+    // Image logic: Toggle object-fit if clicking image without Shift
+    if (node.image && !event.shiftKey) {
         saveState();
-        const currentFit = img.style.objectFit || 'cover';
-        img.style.objectFit = currentFit === 'cover' ? 'contain' : 'cover';
+        node.image.fit = node.image.fit === 'cover' ? 'contain' : 'cover';
+        renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
         return;
     }
 
-    // If we are here, we are either splitting an empty rect OR splitting an image rect with Shift held
+    // Split logic
     saveState();
-    rectElement.setAttribute('data-split-state', 'split');
+    node.splitState = 'split';
 
     const rect = rectElement.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
 
-    let orientation;
     const defaultIsVertical = width >= height;
+    node.orientation = event.altKey ? (defaultIsVertical ? 'horizontal' : 'vertical') : (defaultIsVertical ? 'vertical' : 'horizontal');
 
-    if (event.altKey) {
-        orientation = defaultIsVertical ? 'horizontal' : 'vertical';
-    } else {
-        orientation = defaultIsVertical ? 'vertical' : 'horizontal';
+    // Create children in state
+    const childA = { id: `rect-${++state.currentId}`, splitState: 'unsplit', image: null, size: '50%' };
+    const childB = { id: `rect-${++state.currentId}`, splitState: 'unsplit', image: null, size: '50%' };
+    node.children = [childA, childB];
+
+    // If there was an image, migrate it in state
+    if (node.image) {
+        const targetNode = event.ctrlKey ? childB : childA;
+        targetNode.image = { ...node.image };
+        node.image = null;
     }
 
-    if (orientation === 'vertical') {
-        rectElement.classList.add('flex', 'flex-row');
-    } else {
-        rectElement.classList.add('flex', 'flex-col');
-    }
-
-    const rectA = createRectangle(handleSplitClick);
-    const rectB = createRectangle(handleSplitClick);
-    const divider = createDivider(rectElement, orientation, rectA, rectB, startDrag);
-
-    if (orientation === 'vertical') {
-        rectA.style.width = '50%';
-        rectB.style.width = '50%';
-        rectA.style.height = '100%';
-        rectB.style.height = '100%';
-        rectA.classList.add('h-full');
-        rectB.classList.add('h-full');
-        divider.classList.add('vertical-divider');
-    } else {
-        rectA.style.height = '50%';
-        rectB.style.height = '50%';
-        rectA.style.width = '100%';
-        rectB.style.width = '100%';
-        rectA.classList.add('w-full');
-        rectB.classList.add('w-full');
-        divider.classList.add('horizontal-divider');
-    }
-
-    rectElement.innerHTML = '';
-    rectElement.appendChild(rectA);
-    rectElement.appendChild(divider);
-    rectElement.appendChild(rectB);
-
-    // If there was an image, move it to the target sub-rectangle
-    if (img) {
-        const targetRect = event.ctrlKey ? rectB : rectA;
-        targetRect.innerHTML = ''; // Clear label
-        targetRect.style.position = 'relative';
-        targetRect.appendChild(img);
-        if (removeBtn) targetRect.appendChild(removeBtn);
-
-        // Re-attach drag handlers as the host rectangle has changed
-        const assetId = img.getAttribute('data-asset-id');
-        const asset = importedAssets.find(a => a.id === assetId);
-        if (asset) {
-            attachImageDragHandlers(img, asset, targetRect);
-        }
-    }
+    renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
 }
 
 export function deleteRectangle(rectElement) {
@@ -112,65 +86,41 @@ export function deleteRectangle(rectElement) {
         return;
     }
 
-    const parent = rectElement.parentElement;
-    if (!parent) return;
+    const parentNode = findParentNode(state.layout, rectElement.id);
+    if (!parentNode) return;
 
-    const children = Array.from(parent.children);
-    const sibling = children.find(child => child.classList.contains('splittable-rect') && child !== rectElement);
-    const divider = children.find(child => child.classList.contains('divider'));
+    const siblingNode = parentNode.children.find(c => c.id !== rectElement.id);
 
-    if (!sibling) return;
-
-    const isSiblingSplit = sibling.getAttribute('data-split-state') === 'split';
-    rectElement.remove();
-    if (divider) divider.remove();
-    parent.classList.remove('flex-row', 'flex-col');
-
-    if (isSiblingSplit) {
-        const siblingOrientation = sibling.classList.contains('flex-row') ? 'flex-row' : 'flex-col';
-        parent.classList.add('flex', siblingOrientation);
-        parent.setAttribute('data-split-state', 'split');
-
-        while (sibling.firstChild) {
-            const child = sibling.firstChild;
-            if (child.nodeType === 1 && child.classList.contains('divider')) {
-                child.setAttribute('data-parent-id', parent.id);
-            }
-            parent.appendChild(child);
-        }
-        sibling.remove();
+    // Merge sibling into parent
+    parentNode.splitState = siblingNode.splitState;
+    if (siblingNode.splitState === 'split') {
+        parentNode.children = siblingNode.children;
+        parentNode.orientation = siblingNode.orientation;
     } else {
-        parent.setAttribute('data-split-state', 'unsplit');
-
-        // Transfer positioning style if it exists (e.g. for image remove button)
-        if (getComputedStyle(sibling).position === 'relative' || sibling.style.position === 'relative') {
-            parent.style.position = 'relative';
-        }
-
-        // Move children from sibling to parent to preserve listeners
-        while (sibling.firstChild) {
-            parent.appendChild(sibling.firstChild);
-        }
-        sibling.remove();
+        parentNode.children = null;
+        parentNode.image = siblingNode.image;
+        parentNode.orientation = null;
     }
 
-    if (!parent.classList.contains('flex')) {
-        parent.classList.add('flex', 'items-center', 'justify-center');
-    }
-
-    parent.addEventListener('click', handleSplitClick);
+    renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
 }
 
 export function startDrag(event) {
     event.preventDefault();
     saveState();
 
-    state.activeDivider = event.currentTarget;
-    const rectA = document.getElementById(state.activeDivider.getAttribute('data-rect-a-id'));
-    const rectB = document.getElementById(state.activeDivider.getAttribute('data-rect-b-id'));
-    const parent = document.getElementById(state.activeDivider.getAttribute('data-parent-id'));
+    const divider = event.currentTarget;
+    state.activeDivider = divider;
 
-    const orientation = state.activeDivider.getAttribute('data-orientation');
+    const rectAId = divider.getAttribute('data-rect-a-id');
+    const rectBId = divider.getAttribute('data-rect-b-id');
+    const parentId = divider.getAttribute('data-parent-id');
+
+    const rectA = document.getElementById(rectAId);
+    const rectB = document.getElementById(rectBId);
+    const parent = document.getElementById(parentId);
+
+    const orientation = divider.getAttribute('data-orientation');
     state.startX = event.clientX || event.touches[0].clientX;
     state.startY = event.clientY || event.touches[0].clientY;
 
@@ -181,15 +131,18 @@ export function startDrag(event) {
     if (orientation === 'vertical') {
         state.startSizeA = rectARect.width;
         state.startSizeB = rectBRect.width;
-        state.activeDivider.totalSize = parentRect.width;
+        divider.totalSize = parentRect.width;
     } else {
         state.startSizeA = rectARect.height;
         state.startSizeB = rectBRect.height;
-        state.activeDivider.totalSize = parentRect.height;
+        divider.totalSize = parentRect.height;
     }
 
-    state.activeDivider.rectA = rectA;
-    state.activeDivider.rectB = rectB;
+    divider.rectA = rectA;
+    divider.rectB = rectB;
+    divider.parentId = parentId;
+    divider.rectAId = rectAId;
+    divider.rectBId = rectBId;
 
     document.addEventListener('mousemove', onDrag);
     document.addEventListener('mouseup', stopDrag);
@@ -202,19 +155,15 @@ function onDrag(event) {
     if (!state.activeDivider) return;
     event.preventDefault();
 
-    const orientation = state.activeDivider.getAttribute('data-orientation');
-    const rectA = state.activeDivider.rectA;
-    const rectB = state.activeDivider.rectB;
+    const divider = state.activeDivider;
+    const orientation = divider.getAttribute('data-orientation');
+    const rectA = divider.rectA;
+    const rectB = divider.rectB;
 
     const clientX = event.clientX || event.touches[0].clientX;
     const clientY = event.clientY || event.touches[0].clientY;
 
-    let delta;
-    if (orientation === 'vertical') {
-        delta = clientX - state.startX;
-    } else {
-        delta = clientY - state.startY;
-    }
+    let delta = (orientation === 'vertical') ? (clientX - state.startX) : (clientY - state.startY);
 
     let newSizeA = state.startSizeA + delta;
     let newSizeB = state.startSizeB - delta;
@@ -222,14 +171,14 @@ function onDrag(event) {
 
     if (newSizeA < minSize) {
         newSizeA = minSize;
-        newSizeB = state.activeDivider.totalSize - newSizeA;
+        newSizeB = divider.totalSize;
     } else if (newSizeB < minSize) {
         newSizeB = minSize;
-        newSizeA = state.activeDivider.totalSize - newSizeB;
+        newSizeA = divider.totalSize;
     }
 
-    const percentA = (newSizeA / state.activeDivider.totalSize) * 100;
-    const percentB = (newSizeB / state.activeDivider.totalSize) * 100;
+    const percentA = (newSizeA / divider.totalSize) * 100;
+    const percentB = (newSizeB / divider.totalSize) * 100;
 
     if (orientation === 'vertical') {
         rectA.style.width = `${percentA}%`;
@@ -243,17 +192,21 @@ function onDrag(event) {
 function stopDrag() {
     if (!state.activeDivider) return;
 
-    const rectA = state.activeDivider.rectA;
-    const rectB = state.activeDivider.rectB;
-    const orientation = state.activeDivider.getAttribute('data-orientation');
+    const divider = state.activeDivider;
+    const rectA = divider.rectA;
+    const rectB = divider.rectB;
+    const orientation = divider.getAttribute('data-orientation');
 
-    let sizeA, sizeB;
-    if (orientation === 'vertical') {
-        sizeA = parseFloat(rectA.style.width);
-        sizeB = parseFloat(rectB.style.width);
-    } else {
-        sizeA = parseFloat(rectA.style.height);
-        sizeB = parseFloat(rectB.style.height);
+    const pA = parseFloat(orientation === 'vertical' ? rectA.style.width : rectA.style.height);
+    const pB = parseFloat(orientation === 'vertical' ? rectB.style.width : rectB.style.height);
+
+    // Sync back to state
+    const parentNode = findNodeById(state.layout, divider.parentId);
+    if (parentNode && parentNode.children) {
+        const nodeA = findNodeById(parentNode, divider.rectAId);
+        const nodeB = findNodeById(parentNode, divider.rectBId);
+        if (nodeA) nodeA.size = `${pA}%`;
+        if (nodeB) nodeB.size = `${pB}%`;
     }
 
     document.removeEventListener('mousemove', onDrag);
@@ -263,22 +216,14 @@ function stopDrag() {
     document.body.classList.remove('no-select');
     state.activeDivider = null;
 
-    if (sizeA <= 0) {
+    if (pA <= 0) {
         deleteRectangle(rectA);
-    } else if (sizeB <= 0) {
+    } else if (pB <= 0) {
         deleteRectangle(rectB);
     }
 }
 
 export function rebindEvents() {
-    document.querySelectorAll('.splittable-rect').forEach(rect => {
-        rect.removeEventListener('click', handleSplitClick);
-        rect.addEventListener('click', handleSplitClick);
-    });
-    document.querySelectorAll('.divider').forEach(divider => {
-        divider.removeEventListener('mousedown', startDrag);
-        divider.addEventListener('mousedown', startDrag);
-        divider.removeEventListener('touchstart', startDrag);
-        divider.addEventListener('touchstart', startDrag, { passive: false });
-    });
+    // With state-first, rebindEvents just triggers a full render
+    renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
 }
