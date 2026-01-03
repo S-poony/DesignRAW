@@ -140,7 +140,8 @@ export function setupDropHandlers() {
             removeBtn.className = 'remove-image-btn';
             removeBtn.innerHTML = '×';
             removeBtn.title = 'Remove image';
-            removeBtn.onclick = (event) => {
+            removeBtn.addEventListener('click', (event) => {
+                event.preventDefault();
                 event.stopPropagation();
                 saveState();
                 const hostRect = event.currentTarget.closest('.splittable-rect');
@@ -148,7 +149,7 @@ export function setupDropHandlers() {
                     hostRect.innerHTML = hostRect.id.replace('rect-', ''); // Restore label
                     hostRect.style.position = '';
                 }
-            };
+            });
 
             target.appendChild(img);
             target.appendChild(removeBtn);

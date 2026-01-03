@@ -4,6 +4,12 @@ import { saveState } from './history.js';
 import { createRectangle, createDivider } from './utils.js';
 
 export function handleSplitClick(event) {
+    // If click was on the remove button, don't do anything here
+    // The button has its own click handler with stopPropagation()
+    if (event.target.closest('.remove-image-btn')) {
+        return;
+    }
+
     const rectElement = event.currentTarget;
 
     if (event.ctrlKey) {
@@ -113,6 +119,12 @@ export function deleteRectangle(rectElement) {
         sibling.remove();
     } else {
         parent.setAttribute('data-split-state', 'unsplit');
+
+        // Transfer positioning style if it exists (e.g. for image remove button)
+        if (getComputedStyle(sibling).position === 'relative' || sibling.style.position === 'relative') {
+            parent.style.position = 'relative';
+        }
+
         // Move children from sibling to parent to preserve listeners
         while (sibling.firstChild) {
             parent.appendChild(sibling.firstChild);
