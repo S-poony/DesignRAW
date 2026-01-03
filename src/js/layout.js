@@ -187,12 +187,32 @@ function onDrag(event) {
 
 function stopDrag() {
     if (!state.activeDivider) return;
+
+    const rectA = state.activeDivider.rectA;
+    const rectB = state.activeDivider.rectB;
+    const orientation = state.activeDivider.getAttribute('data-orientation');
+
+    let sizeA, sizeB;
+    if (orientation === 'vertical') {
+        sizeA = parseFloat(rectA.style.width);
+        sizeB = parseFloat(rectB.style.width);
+    } else {
+        sizeA = parseFloat(rectA.style.height);
+        sizeB = parseFloat(rectB.style.height);
+    }
+
     document.removeEventListener('mousemove', onDrag);
     document.removeEventListener('mouseup', stopDrag);
     document.removeEventListener('touchmove', onDrag);
     document.removeEventListener('touchend', stopDrag);
     document.body.classList.remove('no-select');
     state.activeDivider = null;
+
+    if (sizeA <= 0) {
+        deleteRectangle(rectA);
+    } else if (sizeB <= 0) {
+        deleteRectangle(rectB);
+    }
 }
 
 export function rebindEvents() {
