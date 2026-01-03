@@ -57,14 +57,30 @@ body {
     border-left: 4px solid #4f46e5;
 }
 
-.shortcuts-content h2 {
-    margin-top: 0;
+.shortcuts-content h2,
+.shortcuts-content h3 {
+    margin-top: 1.25rem;
     font-size: 1.125rem;
     color: #111827;
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.25rem;
+}
+
+.shortcuts-content h3 {
+    border-bottom: none;
+    font-size: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.shortcuts-content h2:first-child,
+.shortcuts-content h3:first-child {
+    margin-top: 0;
 }
 
 .shortcuts-content h2::before {
@@ -76,16 +92,34 @@ body {
     margin: 0.5rem 0;
     font-size: 0.875rem;
     color: #4b5563;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
-.shortcuts-content strong {
+.shortcuts-content strong,
+.shortcuts-content code {
     color: #111827;
     background: #f3f4f6;
     padding: 2px 4px;
     border-radius: 4px;
-    font-family: monospace;
-    font-size: 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.825rem;
+}
+
+.shortcuts-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
+.shortcuts-content li {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
+}
+
+.shortcuts-content hr {
+    margin: 1.25rem 0;
+    border: 0;
+    border-top: 1px solid #e5e7eb;
 }
 
 .btn-primary {

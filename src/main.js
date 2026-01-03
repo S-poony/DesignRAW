@@ -54,6 +54,8 @@ function initialize() {
     loadShortcuts();
 }
 
+import { marked } from 'marked';
+
 async function loadShortcuts() {
     const container = document.getElementById('shortcuts-content');
     if (!container) return;
@@ -63,25 +65,8 @@ async function loadShortcuts() {
         if (!response.ok) throw new Error('Failed to load shortcuts');
         const text = await response.text();
 
-        // Very basic MD parser for this specific file
-        const html = text
-            .split('\n')
-            .map(line => {
-                line = line.trim();
-                if (line.startsWith('##')) {
-                    return `<h2>${line.replace('##', '').trim()}</h2>`;
-                }
-                if (line.startsWith('***')) {
-                    return '<hr>';
-                }
-                if (line.includes('=')) {
-                    const [key, desc] = line.split('=').map(s => s.trim());
-                    return `<p><strong>${key}</strong>: ${desc}</p>`;
-                }
-                if (line === '') return '';
-                return `<p>${line}</p>`;
-            })
-            .join('');
+        // Use marked for true markdown support with GFM line breaks enabled
+        const html = marked.parse(text, { breaks: true });
 
         container.className = 'shortcuts-content';
         container.innerHTML = html;
