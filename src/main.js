@@ -6,6 +6,77 @@ let startY = 0;
 let startSizeA = 0;
 let startSizeB = 0;
 
+// --- History / Undo Redo logic ---
+let undoStack = [];
+let redoStack = [];
+const MAX_HISTORY = 50;
+
+function saveState() {
+    const paper = document.getElementById(A4_PAPER_ID);
+    undoStack.push({
+        html: paper.innerHTML,
+        currentId: currentId
+    });
+    if (undoStack.length > MAX_HISTORY) {
+        undoStack.shift();
+    }
+    // Clear redo stack whenever a new action is performed
+    redoStack = [];
+}
+
+function undo() {
+    if (undoStack.length === 0) return;
+
+    const paper = document.getElementById(A4_PAPER_ID);
+    // Push current state to redo stack
+    redoStack.push({
+        html: paper.innerHTML,
+        currentId: currentId
+    });
+
+    const prevState = undoStack.pop();
+    restoreState(prevState);
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+
+    const paper = document.getElementById(A4_PAPER_ID);
+    // Push current state to undo stack
+    undoStack.push({
+        html: paper.innerHTML,
+        currentId: currentId
+    });
+
+    const nextState = redoStack.pop();
+    restoreState(nextState);
+}
+
+function restoreState(state) {
+    const paper = document.getElementById(A4_PAPER_ID);
+    paper.innerHTML = state.html;
+    currentId = state.currentId;
+    rebindEvents();
+}
+
+function rebindEvents() {
+    // Re-attach listeners to all splittable rectangles
+    const rects = document.querySelectorAll('.splittable-rect');
+    rects.forEach(rect => {
+        rect.removeEventListener('click', handleSplitClick);
+        rect.addEventListener('click', handleSplitClick);
+    });
+
+    // Re-attach listeners to all dividers
+    const dividers = document.querySelectorAll('.divider');
+    dividers.forEach(divider => {
+        divider.removeEventListener('mousedown', startDrag);
+        divider.addEventListener('mousedown', startDrag);
+        divider.removeEventListener('touchstart', startDrag);
+        divider.addEventListener('touchstart', startDrag, { passive: false });
+    });
+}
+
 // --- Utility Functions ---
 
 // Function to create a new splittable rectangle
@@ -35,6 +106,7 @@ function handleSplitClick(event) {
     // Handle Ctrl+Click for deletion (unsplit)
     if (event.ctrlKey) {
         event.stopPropagation();
+        saveState(); // Save before deleting
         deleteRectangle(rectElement);
         return;
     }
@@ -43,6 +115,8 @@ function handleSplitClick(event) {
     if (rectElement.getAttribute('data-split-state') === 'split') {
         return;
     }
+
+    saveState(); // Save before splitting
 
     // Mark as split
     rectElement.setAttribute('data-split-state', 'split');
@@ -117,7 +191,7 @@ function deleteRectangle(rectElement) {
     const divider = children.find(child => child.classList.contains('divider'));
 
     if (!sibling) {
-    return;
+        return;
     }
 
     // Promote sibling content/state to parent
@@ -162,10 +236,23 @@ function deleteRectangle(rectElement) {
 
 // --- Cursor State Logic ---
 
-function setupCtrlHandler() {
+function setupGlobalHandlers() {
     window.addEventListener('keydown', (e) => {
+        // Ctrl Key for Cursor
         if (e.key === 'Control') {
             document.body.classList.add('ctrl-pressed');
+        }
+
+        // Undo: Ctrl + Z
+        if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            undo();
+        }
+
+        // Redo: Ctrl + Y or Ctrl + Shift + Z
+        if ((e.ctrlKey && e.key.toLowerCase() === 'y') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z')) {
+            e.preventDefault();
+            redo();
         }
     });
 
@@ -175,7 +262,6 @@ function setupCtrlHandler() {
         }
     });
 
-    // Handle initial state if needed
     window.addEventListener('blur', () => {
         document.body.classList.remove('ctrl-pressed');
     });
@@ -202,6 +288,9 @@ function createDivider(parentRect, orientation, rectA, rectB) {
 
 function startDrag(event) {
     event.preventDefault();
+
+    saveState(); // Save state before starting to drag
+
     // Store the currently dragged divider
     activeDivider = event.currentTarget;
 
@@ -316,7 +405,7 @@ function initialize() {
     // Attach handlers to the initial rectangle
     initialRect.addEventListener('click', handleSplitClick);
 
-    setupCtrlHandler();
+    setupGlobalHandlers();
 }
 
 // Run initialization when the document is ready
