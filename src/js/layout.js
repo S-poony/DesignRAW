@@ -25,11 +25,17 @@ export function handleSplitClick(event) {
     const height = rect.height;
 
     let orientation;
-    if (width >= height) {
-        orientation = 'vertical';
+    const defaultIsVertical = width >= height;
+
+    if (event.altKey) {
+        orientation = defaultIsVertical ? 'horizontal' : 'vertical';
+    } else {
+        orientation = defaultIsVertical ? 'vertical' : 'horizontal';
+    }
+
+    if (orientation === 'vertical') {
         rectElement.classList.add('flex', 'flex-row');
     } else {
-        orientation = 'horizontal';
         rectElement.classList.add('flex', 'flex-col');
     }
 
