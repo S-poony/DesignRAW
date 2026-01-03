@@ -99,6 +99,23 @@ function renderAssetList() {
     });
 }
 
+// Helper to attach drag handlers to an image element within a rectangle
+export function attachImageDragHandlers(img, asset, hostRect) {
+    img.draggable = true;
+    img.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', asset.id);
+        window._draggedAsset = asset;
+        window._sourceRect = hostRect;
+        // Optional: add a class to source to indicate it's being moved
+        hostRect.classList.add('moving-image');
+    });
+
+    img.addEventListener('dragend', () => {
+        hostRect.classList.remove('moving-image');
+        window._sourceRect = null;
+    });
+}
+
 // Drop handler for rectangles
 export function setupDropHandlers() {
     // This will be called on initialization to handle the paper container
@@ -132,8 +149,19 @@ export function setupDropHandlers() {
             img.setAttribute('data-asset-id', asset.id); // Track for export
             img.style.width = '100%';
             img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            // img.style.pointerEvents = 'none'; // Removed to allow clicks to bubble or be handled directly
+
+            // Preserve object-fit if moving between rectangles
+            let currentFit = 'cover';
+            if (window._sourceRect) {
+                const sourceImg = window._sourceRect.querySelector('img');
+                if (sourceImg) {
+                    currentFit = sourceImg.style.objectFit || 'cover';
+                }
+            }
+            img.style.objectFit = currentFit;
+
+            // Attach drag handlers for moving image between rectangles
+            attachImageDragHandlers(img, asset, target);
 
             // Create remove button
             const removeBtn = document.createElement('button');
@@ -153,7 +181,15 @@ export function setupDropHandlers() {
 
             target.appendChild(img);
             target.appendChild(removeBtn);
+
+            // If this was a move from another rectangle, clear the source
+            if (window._sourceRect && window._sourceRect !== target) {
+                window._sourceRect.innerHTML = window._sourceRect.id.replace('rect-', ''); // Restore label
+                window._sourceRect.style.position = '';
+            }
+
             window._draggedAsset = null;
+            window._sourceRect = null;
         }
     });
 }

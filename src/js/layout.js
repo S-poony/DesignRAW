@@ -2,6 +2,7 @@ import { A4_PAPER_ID } from './constants.js';
 import { state } from './state.js';
 import { saveState } from './history.js';
 import { createRectangle, createDivider } from './utils.js';
+import { attachImageDragHandlers, importedAssets } from './assets.js';
 
 export function handleSplitClick(event) {
     // If click was on the remove button, don't do anything here
@@ -96,6 +97,13 @@ export function handleSplitClick(event) {
         targetRect.style.position = 'relative';
         targetRect.appendChild(img);
         if (removeBtn) targetRect.appendChild(removeBtn);
+
+        // Re-attach drag handlers as the host rectangle has changed
+        const assetId = img.getAttribute('data-asset-id');
+        const asset = importedAssets.find(a => a.id === assetId);
+        if (asset) {
+            attachImageDragHandlers(img, asset, targetRect);
+        }
     }
 }
 
