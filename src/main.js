@@ -243,8 +243,8 @@ function setupGlobalHandlers() {
             document.body.classList.add('ctrl-pressed');
         }
 
-        // Undo: Ctrl + Z
-        if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+        // Undo: Ctrl + Z (ensuring Shift is NOT held)
+        if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
             e.preventDefault();
             undo();
         }
