@@ -32,16 +32,62 @@
 }
 
 .horizontal-divider {
-    height: 6px;
+    height: 12px;
     align-self: stretch;
     cursor: ns-resize;
 }
 
 .vertical-divider {
-    width: 6px;
+    width: 12px;
     align-self: stretch;
     cursor: ew-resize;
 }
+
+
+/* Edge Handle Styles for Inward Dragging */
+.edge-handle {
+    position: absolute;
+    z-index: 2;  /* over images but under sidebars */
+    transition: background-color 0.2s;
+    background-color: transparent;
+}
+
+.edge-handle:hover {
+    background-color: rgba(79, 70, 229, 0.2);
+}
+
+.edge-top {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    cursor: ns-resize;
+}
+
+.edge-bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    cursor: ns-resize;
+}
+
+.edge-left {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 12px;
+    cursor: ew-resize;
+}
+
+.edge-right {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    cursor: ew-resize;
+}
+
 
 /* Ensure all rectangles fill their containers */
 .splittable-rect,
@@ -111,50 +157,6 @@
 
 .splittable-rect:hover .remove-image-btn {
     display: flex;
-}
-
-/* Edge Handle Styles for Inward Dragging */
-.edge-handle {
-    position: absolute;
-    z-index: 100;
-    transition: background-color 0.2s;
-    background-color: transparent;
-}
-
-.edge-handle:hover {
-    background-color: rgba(79, 70, 229, 0.2);
-}
-
-.edge-top {
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 12px;
-    cursor: ns-resize;
-}
-
-.edge-bottom {
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 12px;
-    cursor: ns-resize;
-}
-
-.edge-left {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 12px;
-    cursor: ew-resize;
-}
-
-.edge-right {
-    top: 0;
-    bottom: 0;
-    right: 0;
-    width: 12px;
-    cursor: ew-resize;
 }
 
 /* Ctrl key held style */
