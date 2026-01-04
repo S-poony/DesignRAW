@@ -57,6 +57,7 @@ async function performExport(format) {
     clone.style.left = '0';
     clone.style.width = paper.offsetWidth + 'px';
     clone.style.height = paper.offsetHeight + 'px';
+    clone.style.zoom = '200%'; // Zoom the clone to double the size of the export
     document.body.appendChild(clone);
 
     // 2. Swap low-res images for high-res ones in the clone
