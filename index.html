@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Page Splitter</title>
+    <!-- Load custom styles -->
+  <script type="module" crossorigin src="./assets/index-bKGfxrpH.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DdJNDnyI.css">
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- Header -->
+        <h1>Interactive Document Layout</h1>
+
+        <div class="main-layout">
+            <!-- Pages Sidebar -->
+            <aside id="pages-sidebar">
+                <button id="add-page-btn" class="btn-primary w-full">+ Add Page</button>
+                <div id="pages-list">
+                    <!-- Thumbnails start here -->
+                </div>
+            </aside>
+
+            <!-- A4 Paper Container -->
+            <div id="a4-paper" class="a4-paper">
+                <!-- Initial Rectangle -->
+                <div id="rect-1"
+                    class="splittable-rect rectangle-initial flex items-center justify-center w-full h-full"
+                    data-split-state="unsplit">
+                    Click to Split (Initial A4 Page)
+                </div>
+            </div>
+
+            <!-- Sidebar for Assets and Shortcuts -->
+            <aside class="sidebar">
+                <button id="import-assets-btn" class="btn-primary">Import Assets</button>
+                <div id="asset-list" class="asset-list">
+                    <!-- Assets will appear here -->
+                </div>
+                <hr>
+                <button id="export-layout-btn" class="btn-secondary">Export Layout</button>
+                <hr>
+                <!-- Shortcuts Content -->
+                <div id="shortcuts-content" class="shortcuts-content">Loading shortcuts...</div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Export Layout</h2>
+            <p>Select your preferred format:</p>
+            <div class="export-options">
+                <label>
+                    <input type="radio" name="export-format" value="png" checked> PNG Image
+                </label>
+                <label>
+                    <input type="radio" name="export-format" value="jpeg"> JPEG Image
+                </label>
+                <label>
+                    <input type="radio" name="export-format" value="pdf"> PDF Document
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-export" class="btn-text">Cancel</button>
+                <button id="confirm-export" class="btn-primary">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load main JavaScript -->
+</body>
+
+</html>
