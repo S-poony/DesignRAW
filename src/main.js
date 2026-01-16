@@ -63,7 +63,7 @@ async function loadShortcuts() {
     if (!container) return;
 
     try {
-        const response = await fetch('/assets/shortcuts.md');
+        const response = await fetch('assets/shortcuts.md');
         if (!response.ok) throw new Error('Failed to load shortcuts');
         const text = await response.text();
 
