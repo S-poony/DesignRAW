@@ -81,10 +81,10 @@ function renderLeafNode(container, node) {
 
             attachImageDragHandlers(img, asset, container);
         } else {
-            container.innerHTML = node.id.replace('rect-', '');
+            container.innerHTML = '';
         }
     } else {
-        container.innerHTML = node.id.replace('rect-', '');
+        container.innerHTML = '';
     }
 
     container.addEventListener('click', handleSplitClick);
