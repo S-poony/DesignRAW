@@ -29,8 +29,8 @@ body {
     align-items: flex-start;
     justify-content: center;
     position: relative;
-    padding: 0 300px;
-    /* Leave space for the absolute sidebar */
+    padding: 0 320px 0 320px;
+    /* Balanced padding to keep center centered if sidebar is 280px + 2rem */
 }
 
 h1 {
