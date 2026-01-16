@@ -47,17 +47,33 @@ export function switchPage(index) {
 }
 
 export function deletePage(index) {
-    if (state.pages.length <= 1) return; // Prevent deleting the last page
+    if (state.pages.length <= 1) return;
 
     state.pages.splice(index, 1);
 
-    // Adjust current index if needed
     if (state.currentPageIndex >= state.pages.length) {
         state.currentPageIndex = state.pages.length - 1;
     }
 }
 
-// For backward compatibility or specific updates, though we should prefer modifying state.pages directly
+export function reorderPage(fromIndex, toIndex) {
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || fromIndex >= state.pages.length) return;
+    if (toIndex < 0 || toIndex >= state.pages.length) return;
+
+    const [movedPage] = state.pages.splice(fromIndex, 1);
+    state.pages.splice(toIndex, 0, movedPage);
+
+    // Adjust currentPageIndex to follow the moved page if it was the active one
+    if (state.currentPageIndex === fromIndex) {
+        state.currentPageIndex = toIndex;
+    } else if (fromIndex < state.currentPageIndex && toIndex >= state.currentPageIndex) {
+        state.currentPageIndex--;
+    } else if (fromIndex > state.currentPageIndex && toIndex <= state.currentPageIndex) {
+        state.currentPageIndex++;
+    }
+}
+
 export function updateLayout(newLayout) {
     state.pages[state.currentPageIndex] = newLayout;
 }

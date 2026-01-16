@@ -1,4 +1,4 @@
-import { state, addPage, switchPage, deletePage, getCurrentPage } from './state.js';
+import { state, addPage, switchPage, deletePage, reorderPage, getCurrentPage } from './state.js';
 import { renderLayout } from './renderer.js';
 import { A4_PAPER_ID } from './constants.js';
 import { saveState } from './history.js';
@@ -39,15 +39,12 @@ export function renderPageList() {
     state.pages.forEach((page, index) => {
         const item = document.createElement('div');
         item.className = `page-thumbnail-item ${index === state.currentPageIndex ? 'active' : ''}`;
+        item.draggable = true;
+        item.dataset.pageIndex = index;
 
         // Thumbnail Container
         const thumbnailContainer = document.createElement('div');
         thumbnailContainer.className = 'page-thumbnail-preview';
-
-        // Render a mini version of the layout
-        // We'll use the renderer but specific for thumbnails
-        // Since renderer renders to DOM, we can render to a temporary div and scale it down
-        // Or better, just structure it similarly but with simple styles
 
         const previewContent = document.createElement('div');
         previewContent.className = 'mini-layout';
@@ -77,6 +74,43 @@ export function renderPageList() {
                 alert('Cannot delete the last page.');
             }
         };
+
+        // Drag and Drop for reordering
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', index.toString());
+            item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            document.querySelectorAll('.page-thumbnail-item').forEach(el => {
+                el.classList.remove('drag-over');
+            });
+        });
+
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            item.classList.add('drag-over');
+        });
+
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+            const toIndex = index;
+            if (fromIndex !== toIndex) {
+                saveState();
+                reorderPage(fromIndex, toIndex);
+                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                renderPageList();
+            }
+            item.classList.remove('drag-over');
+        });
 
         item.addEventListener('click', () => {
             if (state.currentPageIndex !== index) {
