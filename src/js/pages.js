@@ -22,6 +22,10 @@ export function setupPageHandlers() {
         renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
     });
 
+    document.addEventListener('layoutUpdated', () => {
+        renderPageList();
+    });
+
     // Initial render
     renderPageList();
 }

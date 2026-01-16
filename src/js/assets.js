@@ -1,5 +1,5 @@
 import { saveState } from './history.js';
-import { state } from './state.js';
+import { state, getCurrentPage } from './state.js';
 import { findNodeById } from './layout.js';
 import { renderLayout } from './renderer.js';
 import { A4_PAPER_ID } from './constants.js';
@@ -120,7 +120,7 @@ export function setupDropHandlers() {
     paper.addEventListener('dragover', (e) => {
         const targetElement = e.target.closest('.splittable-rect');
         if (targetElement) {
-            const node = findNodeById(state.layout, targetElement.id);
+            const node = findNodeById(getCurrentPage(), targetElement.id);
             if (node && node.splitState === 'unsplit') {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
@@ -133,7 +133,7 @@ export function setupDropHandlers() {
         const asset = window._draggedAsset;
 
         if (targetElement && asset) {
-            const targetNode = findNodeById(state.layout, targetElement.id);
+            const targetNode = findNodeById(getCurrentPage(), targetElement.id);
             if (!targetNode || targetNode.splitState === 'split') return;
 
             e.preventDefault();
@@ -141,7 +141,7 @@ export function setupDropHandlers() {
 
             let fit = 'cover';
             if (window._sourceRect) {
-                const sourceNode = findNodeById(state.layout, window._sourceRect.id);
+                const sourceNode = findNodeById(getCurrentPage(), window._sourceRect.id);
                 if (sourceNode && sourceNode.image) {
                     fit = sourceNode.image.fit;
                     sourceNode.image = null;
@@ -156,7 +156,8 @@ export function setupDropHandlers() {
             window._draggedAsset = null;
             window._sourceRect = null;
 
-            renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
+            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+            document.dispatchEvent(new CustomEvent('layoutUpdated'));
         }
     });
 }

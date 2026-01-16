@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { state, getCurrentPage } from './state.js';
 import { findNodeById } from './layout.js';
 import { A4_PAPER_ID } from './constants.js';
 import { importedAssets, attachImageDragHandlers } from './assets.js';
@@ -71,7 +71,8 @@ function renderLeafNode(container, node) {
                 import('./history.js').then(({ saveState }) => {
                     saveState();
                     node.image = null;
-                    renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
+                    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                    document.dispatchEvent(new CustomEvent('layoutUpdated'));
                 });
             });
 

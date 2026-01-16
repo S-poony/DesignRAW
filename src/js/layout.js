@@ -52,6 +52,7 @@ export function handleSplitClick(event) {
         saveState();
         node.image.fit = node.image.fit === 'cover' ? 'contain' : 'cover';
         renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+        document.dispatchEvent(new CustomEvent('layoutUpdated'));
         return;
     }
 
@@ -79,6 +80,7 @@ export function handleSplitClick(event) {
     }
 
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
 }
 
 export function deleteRectangle(rectElement) {
@@ -103,6 +105,7 @@ export function deleteRectangle(rectElement) {
     }
 
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
 }
 
 export function startDrag(event, dividerElement = null) {
@@ -191,6 +194,7 @@ export function startEdgeDrag(event, edge) {
 
     state.pages[state.currentPageIndex] = newRoot;
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
 
     // Now trigger the normal drag on the newly created divider
     const divider = document.querySelector(`.divider[data-parent-id="${newRoot.id}"]`);
@@ -273,5 +277,6 @@ function stopDrag() {
 
 export function rebindEvents() {
     // With state-first, rebindEvents just triggers a full render
-    renderLayout(document.getElementById(A4_PAPER_ID), state.layout);
+    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
 }

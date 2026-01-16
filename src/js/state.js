@@ -48,9 +48,9 @@ export function switchPage(index) {
 
 export function deletePage(index) {
     if (state.pages.length <= 1) return; // Prevent deleting the last page
-    
+
     state.pages.splice(index, 1);
-    
+
     // Adjust current index if needed
     if (state.currentPageIndex >= state.pages.length) {
         state.currentPageIndex = state.pages.length - 1;
