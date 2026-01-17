@@ -85,7 +85,7 @@ function renderLeafNode(container, node) {
             container.innerHTML = '';
         }
     } else if (node.text !== null && node.text !== undefined) {
-        renderTextContent(container, node);
+        renderTextContent(container, node, false);
     } else {
         // Empty rectangle - show hover prompt
         container.innerHTML = '';
@@ -103,14 +103,10 @@ function renderLeafNode(container, node) {
             import('./history.js').then(({ saveState }) => {
                 saveState();
                 node.text = '';
+                // Mark that we want edit mode
+                node._startInEditMode = true;
                 renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
                 document.dispatchEvent(new CustomEvent('layoutUpdated'));
-                // Focus the editor after render - use nodeId to find the new element
-                setTimeout(() => {
-                    const newContainer = document.getElementById(nodeId);
-                    const editor = newContainer?.querySelector('.text-editor');
-                    if (editor) editor.focus();
-                }, 0);
             });
         });
     }
@@ -118,24 +114,34 @@ function renderLeafNode(container, node) {
     container.addEventListener('click', handleSplitClick);
 }
 
-function renderTextContent(container, node) {
+function renderTextContent(container, node, startInEditMode = false) {
+    // Check if we should start in edit mode
+    if (node._startInEditMode) {
+        startInEditMode = true;
+        delete node._startInEditMode;
+    }
     container.innerHTML = '';
     container.style.position = 'relative';
 
     const editorContainer = document.createElement('div');
     editorContainer.className = 'text-editor-container';
 
-    // Preview (shown by default) - draggable like images
+    // Preview - draggable like images
     const preview = document.createElement('div');
-    preview.className = 'markdown-content';
+    preview.className = startInEditMode ? 'markdown-content hidden' : 'markdown-content';
     preview.draggable = true;
     preview.innerHTML = marked.parse(node.text || '') || '<span class="text-placeholder">Click to edit...</span>';
 
-    // Editor (hidden by default)
+    // Editor
     const editor = document.createElement('textarea');
-    editor.className = 'text-editor hidden';
+    editor.className = startInEditMode ? 'text-editor' : 'text-editor hidden';
     editor.value = node.text || '';
     editor.placeholder = 'Write Markdown here...';
+
+    // Auto-focus if starting in edit mode
+    if (startInEditMode) {
+        setTimeout(() => editor.focus(), 0);
+    }
 
     // Drag preview to move text (like images)
     preview.addEventListener('dragstart', (e) => {
