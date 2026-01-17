@@ -323,7 +323,7 @@ function createDOMRect(node, parentOrientation) {
 
 function createDOMDivider(parentNode, rectA, rectB) {
     const divider = document.createElement('div');
-    divider.className = `divider no - select flex - shrink - 0 ${parentNode.orientation} -divider`;
+    divider.className = `divider no-select flex-shrink-0 ${parentNode.orientation}-divider`;
     divider.setAttribute('data-orientation', parentNode.orientation);
     divider.setAttribute('data-rect-a-id', rectA.id);
     divider.setAttribute('data-rect-b-id', rectB.id);
@@ -338,7 +338,7 @@ function addEdgeHandles(container) {
     const edges = ['top', 'bottom', 'left', 'right'];
     edges.forEach(edge => {
         const handle = document.createElement('div');
-        handle.className = `edge - handle edge - ${edge} `;
+        handle.className = `edge-handle edge-${edge}`;
         handle.addEventListener('mousedown', (e) => startEdgeDrag(e, edge));
         handle.addEventListener('touchstart', (e) => startEdgeDrag(e, edge), { passive: false });
         container.appendChild(handle);
