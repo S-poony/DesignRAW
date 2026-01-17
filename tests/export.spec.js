@@ -23,7 +23,7 @@ test('export layout modal opens and triggers download', async ({ page }) => {
 
     // 4. Verify download started
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/layout-export-.*\.zip/);
+    expect(download.suggestedFilename()).toMatch(/layout-export-.*\.png/);
 
     // 5. Verify modal closed
     await expect(modal).not.toHaveClass(/active/);
@@ -41,5 +41,5 @@ test('export format selection works', async ({ page }) => {
     await page.locator('#confirm-export').click();
 
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/layout-export-.*\.zip/);
+    expect(download.suggestedFilename()).toMatch(/layout-export-.*\.jpg/);
 });

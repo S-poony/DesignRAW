@@ -65,6 +65,17 @@
                     <input type="radio" name="export-format" value="pdf"> PDF Document
                 </label>
             </div>
+
+            <div class="quality-control">
+                <div class="quality-header">
+                    <label for="export-quality">Export Quality:</label>
+                    <span id="quality-value">300%</span>
+                </div>
+                <input type="range" id="export-quality" min="100" max="300" step="10" value="300">
+                <div class="quality-info">
+                    Dimensions: <span id="export-dimensions">2382 x 3369 px</span>
+                </div>
+            </div>
             <div class="modal-actions">
                 <button id="cancel-export" class="btn-text">Cancel</button>
                 <button id="confirm-export" class="btn-primary">Download</button>

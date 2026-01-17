@@ -53,3 +53,41 @@
     gap: 1rem;
     margin-top: 2rem;
 }
+
+.quality-control {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.quality-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quality-header label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+#quality-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4f46e5;
+}
+
+.quality-control input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+
+.quality-info {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: right;
+}
