@@ -246,9 +246,16 @@ function renderTextContent(container, node, startInEditMode = false) {
             const listMatch = line.match(/^(\s*)([-*+]|\d+\.)(\s+)/);
             if (listMatch) {
                 e.preventDefault();
-                const prefix = '\n' + listMatch[1] + listMatch[2] + listMatch[3];
-                editor.value = value.substring(0, start) + prefix + value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + prefix.length;
+                // If current line is just the list marker, end the list (Obsidian style)
+                if (line.trim() === listMatch[2]) {
+                    const lineStart = start - line.length;
+                    editor.value = value.substring(0, lineStart) + '\n' + value.substring(end);
+                    editor.selectionStart = editor.selectionEnd = lineStart + 1;
+                } else {
+                    const prefix = '\n' + listMatch[1] + listMatch[2] + listMatch[3];
+                    editor.value = value.substring(0, start) + prefix + value.substring(end);
+                    editor.selectionStart = editor.selectionEnd = start + prefix.length;
+                }
                 editor.dispatchEvent(new Event('input'));
             }
         }
