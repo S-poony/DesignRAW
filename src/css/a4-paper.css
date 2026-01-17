@@ -209,15 +209,15 @@
 /* Image removal button */
 .remove-image-btn {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 24px;
-    height: 24px;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.9);
     border: 1px solid #d1d5db;
     color: #374151;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
     display: none;
     align-items: center;
@@ -226,6 +226,7 @@
     transition: all 0.2s;
     padding: 0;
     padding-bottom: 2px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .remove-image-btn:hover {
