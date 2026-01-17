@@ -157,6 +157,9 @@ async function performExport(format, qualityMultiplier) {
                 }
                 pdf.addImage(imgData, 'JPEG', 0, 0, PDF_W, PDF_H);
 
+                // Add interactive links
+                addLinksToPdf(pdf, paperWrapper, PDF_W / BASE_A4_WIDTH);
+
             } else if (isSingleImageExport) {
                 const ext = format === 'jpeg' ? 'jpg' : 'png';
                 const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
@@ -232,7 +235,6 @@ function downloadBlob(blob, filename) {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
 }
-
 function addPdfBookmarks(pdf, pages) {
     // Extract headings from all text nodes across pages
     pages.forEach((page, pageIndex) => {
@@ -247,6 +249,30 @@ function addPdfBookmarks(pdf, pages) {
                 console.warn('PDF bookmark not added:', e.message);
             }
         });
+    });
+}
+
+function addLinksToPdf(pdf, container, scale) {
+    const links = container.querySelectorAll('a');
+    const containerRect = container.getBoundingClientRect();
+
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+
+        const rects = link.getClientRects(); // Using getClientRects for multi-line links
+        for (let i = 0; i < rects.length; i++) {
+            const rect = rects[i];
+
+            // Calculate coordinates relative to container
+            const x = (rect.left - containerRect.left) * scale;
+            const y = (rect.top - containerRect.top) * scale;
+            const w = rect.width * scale;
+            const h = rect.height * scale;
+
+            // Add link to PDF
+            pdf.link(x, y, w, h, { url: href });
+        }
     });
 }
 
