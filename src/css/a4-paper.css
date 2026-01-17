@@ -40,10 +40,35 @@
 
 /* Style for the draggable divider */
 .divider {
-    background-color: rgba(0, 0, 0, 0.1);
-    transition: background-color 0.1s;
+    background-color: rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
     flex-shrink: 0;
     box-sizing: border-box;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Larger hit area for touch */
+.divider::after {
+    content: '';
+    position: absolute;
+    z-index: 10;
+}
+
+.vertical-divider::after {
+    top: 0;
+    bottom: 0;
+    left: -20px;
+    right: -20px;
+}
+
+.horizontal-divider::after {
+    left: 0;
+    right: 0;
+    top: -20px;
+    bottom: -20px;
 }
 
 .divider:hover {
@@ -72,6 +97,12 @@
     background-color: transparent;
 }
 
+.edge-handle::after {
+    content: '';
+    position: absolute;
+    z-index: 10;
+}
+
 .edge-handle:hover {
     background-color: rgba(79, 70, 229, 0.2);
 }
@@ -84,12 +115,26 @@
     cursor: ns-resize;
 }
 
+.edge-top::after {
+    top: -10px;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+}
+
 .edge-bottom {
     bottom: 0;
     left: 0;
     right: 0;
     height: 12px;
     cursor: ns-resize;
+}
+
+.edge-bottom::after {
+    top: -10px;
+    bottom: -10px;
+    left: 0;
+    right: 0;
 }
 
 .edge-left {
@@ -100,12 +145,26 @@
     cursor: ew-resize;
 }
 
+.edge-left::after {
+    left: -10px;
+    right: -10px;
+    top: 0;
+    bottom: 0;
+}
+
 .edge-right {
     top: 0;
     bottom: 0;
     right: 0;
     width: 12px;
     cursor: ew-resize;
+}
+
+.edge-right::after {
+    left: -10px;
+    right: -10px;
+    top: 0;
+    bottom: 0;
 }
 
 
