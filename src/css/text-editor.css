@@ -2,18 +2,31 @@
 
 .text-prompt {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 10px;
+    left: 10px;
     color: #9ca3af;
     font-size: 0.875rem;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
     user-select: none;
     cursor: pointer;
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.text-prompt:hover {
+    color: #4f46e5;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-prompt::before {
+    content: '✎';
+    font-size: 1rem;
 }
 
 .splittable-rect:hover .text-prompt {
@@ -59,6 +72,8 @@
     resize: none;
     background: transparent;
     box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .text-editor:focus {
@@ -70,11 +85,14 @@
     width: 100%;
     height: 100%;
     padding: 0.75rem;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     box-sizing: border-box;
     font-size: 0.875rem;
     line-height: 1.6;
     cursor: text;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .markdown-content h1 {

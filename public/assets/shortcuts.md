@@ -27,3 +27,4 @@
 `click` = edit text
 `shift + click` = split to Target A *(left or top)*
 `ctrl + shift + click` = split to Target B *(right or bottom)*
+`esc` = exit edit mode

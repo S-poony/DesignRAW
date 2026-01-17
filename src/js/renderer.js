@@ -252,6 +252,11 @@ function renderTextContent(container, node, startInEditMode = false) {
                 editor.dispatchEvent(new Event('input'));
             }
         }
+
+        // Exit on Escape
+        if (e.key === 'Escape') {
+            editor.blur();
+        }
     });
 
     // Exit edit mode on blur (click away)
