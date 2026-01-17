@@ -30,6 +30,8 @@ body {
     justify-content: center;
     position: relative;
     padding: 1rem;
+    padding-top: 4rem;
+    /* Space for the floating title */
     gap: 2rem;
     margin: 0 auto;
 }
@@ -37,8 +39,9 @@ body {
 .workspace-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    /* gap: 1rem; Removed to let title float */
     align-items: flex-start;
+    position: relative;
 }
 
 @media (max-width: 1024px) {
@@ -56,13 +59,28 @@ body {
     #app {
         padding: 0.5rem;
     }
+
+    .workspace-wrapper {
+        gap: 1rem;
+        /* Restore gap on mobile */
+    }
+
+    h1 {
+        position: static;
+        margin: 1rem 0;
+        text-align: center;
+    }
 }
 
 h1 {
+    position: absolute;
+    top: -3rem;
+    left: 0;
     margin: 0;
     color: #111827;
     font-size: 1.5rem;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .btn-primary {
