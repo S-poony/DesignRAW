@@ -87,7 +87,13 @@ function renderAssetList() {
         const item = document.createElement('div');
         item.className = 'asset-item';
         item.draggable = true;
-        item.innerHTML = `<img src="${asset.lowResData}" alt="${asset.name}" title="${asset.name}">`;
+        item.innerHTML = `
+            <img src="${asset.lowResData}" alt="${asset.name}" title="${asset.name}">
+            <div class="asset-actions">
+                <button class="asset-action-btn replace" title="Replace asset">🔄</button>
+                <button class="asset-action-btn remove" title="Remove asset">×</button>
+            </div>
+        `;
 
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', asset.id);
@@ -95,8 +101,79 @@ function renderAssetList() {
             window._sourceRect = null;
         });
 
+        const removeBtn = item.querySelector('.remove');
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeAsset(asset.id);
+        });
+
+        const replaceBtn = item.querySelector('.replace');
+        replaceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            replaceAsset(asset.id);
+        });
+
         assetList.appendChild(item);
     });
+}
+
+async function removeAsset(assetId) {
+    if (!confirm('Are you sure you want to remove this asset? All instances in the layout will be deleted.')) return;
+
+    saveState();
+
+    // Remove from registry
+    const index = importedAssets.findIndex(a => a.id === assetId);
+    if (index !== -1) {
+        importedAssets.splice(index, 1);
+    }
+
+    // Remove from all pages
+    state.pages.forEach(pageRoot => {
+        clearAssetFromLayout(pageRoot, assetId);
+    });
+
+    renderAssetList();
+    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
+}
+
+function clearAssetFromLayout(node, assetId) {
+    if (node.image && node.image.assetId === assetId) {
+        node.image = null;
+    }
+    if (node.children) {
+        node.children.forEach(child => clearAssetFromLayout(child, assetId));
+    }
+}
+
+async function replaceAsset(assetId) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        saveState();
+        const newAssetData = await processFile(file);
+
+        const assetIndex = importedAssets.findIndex(a => a.id === assetId);
+        if (assetIndex !== -1) {
+            // Keep the same ID but update data
+            importedAssets[assetIndex] = {
+                ...newAssetData,
+                id: assetId
+            };
+        }
+
+        renderAssetList();
+        renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+        document.dispatchEvent(new CustomEvent('layoutUpdated'));
+    };
+
+    fileInput.click();
 }
 
 export function attachImageDragHandlers(img, asset, hostRectElement) {
