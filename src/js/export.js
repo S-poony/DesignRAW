@@ -67,7 +67,13 @@ export function setupExportHandlers() {
 }
 
 async function performExport(format, qualityMultiplier) {
+    const loadingOverlay = document.getElementById('export-loading');
+    const progressText = document.getElementById('loading-progress');
+
+    if (loadingOverlay) loadingOverlay.classList.add('active');
+
     const tempContainer = document.createElement('div');
+    // ... existing style setup ...
     tempContainer.style.position = 'fixed';
     tempContainer.style.top = '0';
     tempContainer.style.left = '0';
@@ -88,87 +94,98 @@ async function performExport(format, qualityMultiplier) {
     const zip = (format === 'png' || format === 'jpeg') && state.pages.length > 1 ? new JSZip() : null;
     let pdf = null;
 
-    for (let i = 0; i < state.pages.length; i++) {
-        const pageLayout = state.pages[i];
-
-        tempContainer.innerHTML = '';
-        const paperWrapper = document.createElement('div');
-        paperWrapper.className = 'a4-paper';
-        paperWrapper.style.width = '100%';
-        paperWrapper.style.height = '100%';
-        paperWrapper.style.boxShadow = 'none';
-        paperWrapper.style.border = 'none';
-        paperWrapper.style.margin = '0';
-        paperWrapper.style.zoom = '1';
-        tempContainer.appendChild(paperWrapper);
-
-        const exportRoot = document.createElement('div');
-        exportRoot.id = pageLayout.id;
-        exportRoot.className = 'splittable-rect rectangle-base flex items-center justify-center w-full h-full';
-        exportRoot.style.width = '100%';
-        exportRoot.style.height = '100%';
-        paperWrapper.appendChild(exportRoot);
-
-        renderLayout(exportRoot, pageLayout);
-
-        await swapImagesForHighRes(paperWrapper);
-
-        const removeBtns = paperWrapper.querySelectorAll('.remove-image-btn');
-        removeBtns.forEach(btn => btn.remove());
-
-        const canvas = await html2canvas(tempContainer, {
-            scale: qualityMultiplier,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            width: BASE_A4_WIDTH,
-            height: BASE_A4_HEIGHT,
-            windowWidth: BASE_A4_WIDTH,
-            windowHeight: BASE_A4_HEIGHT
-        });
-
-        const timestampForFile = new Date().getTime();
-        const exportFileName = `layout-export-${timestampForFile}`;
-
-        if (format === 'pdf') {
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const PDF_W = 595.28;
-            const PDF_H = 841.89;
-
-            if (!pdf) {
-                pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'pt',
-                    format: 'a4'
-                });
-            } else {
-                pdf.addPage();
+    try {
+        for (let i = 0; i < state.pages.length; i++) {
+            if (progressText) {
+                progressText.textContent = `Processing page ${i + 1} of ${state.pages.length}...`;
             }
-            pdf.addImage(imgData, 'JPEG', 0, 0, PDF_W, PDF_H);
 
-        } else if (isSingleImageExport) {
-            const ext = format === 'jpeg' ? 'jpg' : 'png';
-            const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
-            canvas.toBlob((blob) => {
-                downloadBlob(blob, `${exportFileName}.${ext}`);
-            }, mime, format === 'jpeg' ? 0.95 : 1.0);
-        } else if (zip) {
-            const ext = format === 'jpeg' ? 'jpg' : 'png';
-            const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
-            const dataUrl = canvas.toDataURL(mime, format === 'jpeg' ? 0.95 : 1.0);
-            const base64Data = dataUrl.split(',')[1];
-            zip.file(`page-${i + 1}.${ext}`, base64Data, { base64: true });
+            const pageLayout = state.pages[i];
+
+            tempContainer.innerHTML = '';
+            const paperWrapper = document.createElement('div');
+            paperWrapper.className = 'a4-paper';
+            paperWrapper.style.width = '100%';
+            paperWrapper.style.height = '100%';
+            paperWrapper.style.boxShadow = 'none';
+            paperWrapper.style.border = 'none';
+            paperWrapper.style.margin = '0';
+            paperWrapper.style.zoom = '1';
+            tempContainer.appendChild(paperWrapper);
+
+            const exportRoot = document.createElement('div');
+            exportRoot.id = pageLayout.id;
+            exportRoot.className = 'splittable-rect rectangle-base flex items-center justify-center w-full h-full';
+            exportRoot.style.width = '100%';
+            exportRoot.style.height = '100%';
+            paperWrapper.appendChild(exportRoot);
+
+            renderLayout(exportRoot, pageLayout);
+
+            await swapImagesForHighRes(paperWrapper);
+
+            const removeBtns = paperWrapper.querySelectorAll('.remove-image-btn');
+            removeBtns.forEach(btn => btn.remove());
+
+            const canvas = await html2canvas(tempContainer, {
+                scale: qualityMultiplier,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                width: BASE_A4_WIDTH,
+                height: BASE_A4_HEIGHT,
+                windowWidth: BASE_A4_WIDTH,
+                windowHeight: BASE_A4_HEIGHT
+            });
+
+            const timestampForFile = new Date().getTime();
+            const exportFileName = `layout-export-${timestampForFile}`;
+
+            if (format === 'pdf') {
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const PDF_W = 595.28;
+                const PDF_H = 841.89;
+
+                if (!pdf) {
+                    pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'pt',
+                        format: 'a4'
+                    });
+                } else {
+                    pdf.addPage();
+                }
+                pdf.addImage(imgData, 'JPEG', 0, 0, PDF_W, PDF_H);
+
+            } else if (isSingleImageExport) {
+                const ext = format === 'jpeg' ? 'jpg' : 'png';
+                const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+                // Using toDataURL for direct download to ensure it happens synchronously with the loop or before cleanup
+                // Actually toBlob is fine if we wait for it, but toDataURL is easier for immediate download logic
+                const dataUrl = canvas.toDataURL(mime, format === 'jpeg' ? 0.95 : 1.0);
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `${exportFileName}.${ext}`;
+                link.click();
+            } else if (zip) {
+                const ext = format === 'jpeg' ? 'jpg' : 'png';
+                const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+                const dataUrl = canvas.toDataURL(mime, format === 'jpeg' ? 0.95 : 1.0);
+                const base64Data = dataUrl.split(',')[1];
+                zip.file(`page-${i + 1}.${ext}`, base64Data, { base64: true });
+            }
         }
-    }
 
-    document.body.removeChild(tempContainer);
-
-    const timestamp = new Date().getTime();
-    if (format === 'pdf' && pdf) {
-        pdf.save(`layout-export-${timestamp}.pdf`);
-    } else if (zip) {
-        const content = await zip.generateAsync({ type: 'blob' });
-        downloadBlob(content, `layout-export-${timestamp}.zip`);
+        const timestamp = new Date().getTime();
+        if (format === 'pdf' && pdf) {
+            pdf.save(`layout-export-${timestamp}.pdf`);
+        } else if (zip) {
+            const content = await zip.generateAsync({ type: 'blob' });
+            downloadBlob(content, `layout-export-${timestamp}.zip`);
+        }
+    } finally {
+        document.body.removeChild(tempContainer);
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
     }
 }
 
