@@ -1,4 +1,4 @@
-import { state, addPage, switchPage, deletePage, reorderPage, getCurrentPage } from './state.js';
+import { state, addPage, duplicatePage, switchPage, deletePage, reorderPage, getCurrentPage } from './state.js';
 import { renderLayout } from './renderer.js';
 import { A4_PAPER_ID } from './constants.js';
 import { saveState } from './history.js';
@@ -75,6 +75,19 @@ export function renderPageList() {
             }
         };
 
+        // Duplicate Button
+        const duplicateBtn = document.createElement('button');
+        duplicateBtn.className = 'duplicate-page-btn';
+        duplicateBtn.innerHTML = '⧉';
+        duplicateBtn.title = 'Duplicate Page';
+        duplicateBtn.onclick = (e) => {
+            e.stopPropagation();
+            saveState();
+            duplicatePage(index);
+            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+            renderPageList();
+        };
+
         // Drag and Drop for reordering
         item.addEventListener('dragstart', (e) => {
             e.dataTransfer.effectAllowed = 'move';
@@ -122,6 +135,7 @@ export function renderPageList() {
 
         item.appendChild(pageNum);
         item.appendChild(thumbnailContainer);
+        item.appendChild(duplicateBtn);
         item.appendChild(deleteBtn);
         pagesList.appendChild(item);
     });

@@ -58,6 +58,32 @@ export function deletePage(index) {
     }
 }
 
+export function duplicatePage(index) {
+    if (index < 0 || index >= state.pages.length) return;
+
+    // Deep clone the page
+    const originalPage = state.pages[index];
+    const clonedPage = JSON.parse(JSON.stringify(originalPage));
+
+    // Recursively update all IDs to be unique
+    function updateIds(node) {
+        node.id = `rect-${++state.currentId}`;
+        if (node.children) {
+            node.children.forEach(child => updateIds(child));
+        }
+    }
+
+    updateIds(clonedPage);
+
+    // Insert after the original
+    state.pages.splice(index + 1, 0, clonedPage);
+
+    // Switch to the new page
+    state.currentPageIndex = index + 1;
+
+    return state.currentPageIndex;
+}
+
 export function reorderPage(fromIndex, toIndex) {
     if (fromIndex === toIndex) return;
     if (fromIndex < 0 || fromIndex >= state.pages.length) return;
