@@ -168,6 +168,13 @@ function renderMiniLayout(container, node) {
                 domNode.style.display = 'flex';
                 domNode.style.justifyContent = 'center';
                 domNode.style.alignItems = 'center';
+            } else if (node.text !== null && node.text !== undefined) {
+                domNode.style.backgroundColor = '#fef3c7'; // Indicate text presence (amber-100)
+                domNode.innerHTML = '📝';
+                domNode.style.fontSize = '8px';
+                domNode.style.display = 'flex';
+                domNode.style.justifyContent = 'center';
+                domNode.style.alignItems = 'center';
             }
         }
     }

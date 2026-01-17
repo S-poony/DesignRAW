@@ -56,6 +56,12 @@ export function handleSplitClick(event) {
         return;
     }
 
+    // Text logic: Don't split if clicking text without Shift (Shift required to split)
+    if (node.text && !event.shiftKey) {
+        // Do nothing - clicking text area should focus editor, not split
+        return;
+    }
+
     // Split logic
     saveState();
     node.splitState = 'split';
@@ -68,8 +74,8 @@ export function handleSplitClick(event) {
     node.orientation = event.altKey ? (defaultIsVertical ? 'horizontal' : 'vertical') : (defaultIsVertical ? 'vertical' : 'horizontal');
 
     // Create children in state
-    const childA = { id: `rect-${++state.currentId}`, splitState: 'unsplit', image: null, size: '50%' };
-    const childB = { id: `rect-${++state.currentId}`, splitState: 'unsplit', image: null, size: '50%' };
+    const childA = { id: `rect-${++state.currentId}`, splitState: 'unsplit', image: null, text: null, size: '50%' };
+    const childB = { id: `rect-${++state.currentId}`, splitState: 'unsplit', image: null, text: null, size: '50%' };
     node.children = [childA, childB];
 
     // If there was an image, migrate it in state
@@ -77,6 +83,13 @@ export function handleSplitClick(event) {
         const targetNode = event.ctrlKey ? childB : childA;
         targetNode.image = { ...node.image };
         node.image = null;
+    }
+
+    // If there was text, migrate it in state
+    if (node.text) {
+        const targetNode = event.ctrlKey ? childB : childA;
+        targetNode.text = node.text;
+        node.text = null;
     }
 
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
@@ -101,6 +114,7 @@ export function deleteRectangle(rectElement) {
     } else {
         parentNode.children = null;
         parentNode.image = siblingNode.image;
+        parentNode.text = siblingNode.text;
         parentNode.orientation = null;
     }
 
@@ -179,6 +193,7 @@ export function startEdgeDrag(event, edge) {
         id: `rect-${++state.currentId}`,
         splitState: 'unsplit',
         image: null,
+        text: null,
         size: '0%' // Start with 0 size
     };
 

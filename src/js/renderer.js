@@ -3,6 +3,7 @@ import { findNodeById } from './layout.js';
 import { A4_PAPER_ID } from './constants.js';
 import { importedAssets, attachImageDragHandlers } from './assets.js';
 import { handleSplitClick, startDrag, startEdgeDrag } from './layout.js';
+import { marked } from 'marked';
 
 export function renderLayout(container, node) {
     // Top-level paper handling: ensure we don't accidentally turn the paper into rect-1
@@ -83,11 +84,113 @@ function renderLeafNode(container, node) {
         } else {
             container.innerHTML = '';
         }
+    } else if (node.text !== null && node.text !== undefined) {
+        renderTextContent(container, node);
     } else {
+        // Empty rectangle - show hover prompt
         container.innerHTML = '';
+        container.style.position = 'relative';
+
+        const prompt = document.createElement('div');
+        prompt.className = 'text-prompt';
+        prompt.textContent = 'Click to write';
+        container.appendChild(prompt);
+
+        // Handle click on prompt to start editing
+        prompt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const nodeId = node.id; // Capture ID before re-render
+            import('./history.js').then(({ saveState }) => {
+                saveState();
+                node.text = '';
+                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                document.dispatchEvent(new CustomEvent('layoutUpdated'));
+                // Focus the editor after render - use nodeId to find the new element
+                setTimeout(() => {
+                    const newContainer = document.getElementById(nodeId);
+                    const editor = newContainer?.querySelector('.text-editor');
+                    if (editor) editor.focus();
+                }, 0);
+            });
+        });
     }
 
     container.addEventListener('click', handleSplitClick);
+}
+
+function renderTextContent(container, node) {
+    container.innerHTML = '';
+    container.style.position = 'relative';
+
+    const editorContainer = document.createElement('div');
+    editorContainer.className = 'text-editor-container';
+
+    const editor = document.createElement('textarea');
+    editor.className = 'text-editor';
+    editor.value = node.text || '';
+    editor.placeholder = 'Write your text here... (Markdown supported)';
+
+    // Prevent click from bubbling to split handler
+    editor.addEventListener('click', (e) => e.stopPropagation());
+
+    // Sync text back to state
+    editor.addEventListener('input', () => {
+        node.text = editor.value;
+        document.dispatchEvent(new CustomEvent('layoutUpdated'));
+    });
+
+    // Drag handle for moving text
+    const dragHandle = document.createElement('div');
+    dragHandle.className = 'text-drag-handle';
+    dragHandle.innerHTML = '⋮⋮';
+    dragHandle.title = 'Drag to move text';
+    dragHandle.draggable = true;
+    dragHandle.addEventListener('click', (e) => e.stopPropagation());
+    dragHandle.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', 'text-content');
+        window._draggedText = node.text;
+        window._sourceRect = container;
+        window._sourceTextNode = node;
+        container.classList.add('moving-text');
+    });
+    dragHandle.addEventListener('dragend', () => {
+        container.classList.remove('moving-text');
+    });
+
+    // Remove button
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-text-btn';
+    removeBtn.innerHTML = '×';
+    removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        import('./history.js').then(({ saveState }) => {
+            saveState();
+            node.text = null;
+            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+            document.dispatchEvent(new CustomEvent('layoutUpdated'));
+        });
+    });
+
+    editorContainer.appendChild(editor);
+    editorContainer.appendChild(dragHandle);
+    editorContainer.appendChild(removeBtn);
+    container.appendChild(editorContainer);
+}
+
+function attachTextDragHandlers(editorContainer, node, hostRectElement) {
+    editorContainer.draggable = true;
+    editorContainer.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', 'text-content');
+        window._draggedText = node.text;
+        window._sourceRect = hostRectElement;
+        window._sourceTextNode = node;
+        hostRectElement.classList.add('moving-text');
+    });
+
+    editorContainer.addEventListener('dragend', () => {
+        hostRectElement.classList.remove('moving-text');
+    });
 }
 
 function createDOMRect(node, parentOrientation) {

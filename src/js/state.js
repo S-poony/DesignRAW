@@ -14,7 +14,8 @@ export let state = {
 const initialLayout = {
     id: 'rect-1',
     splitState: 'unsplit',
-    image: null
+    image: null,
+    text: null
 };
 state.pages.push(initialLayout);
 
@@ -33,7 +34,8 @@ export function addPage() {
     const newPage = {
         id: `rect-${state.currentId}`,
         splitState: 'unsplit',
-        image: null
+        image: null,
+        text: null
     };
     state.pages.push(newPage);
     state.currentPageIndex = state.pages.length - 1;

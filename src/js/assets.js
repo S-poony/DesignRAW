@@ -199,6 +199,16 @@ export function setupDropHandlers() {
         if (targetElement) {
             const node = findNodeById(getCurrentPage(), targetElement.id);
             if (node && node.splitState === 'unsplit') {
+                // Block image drops on text rectangles
+                if (window._draggedAsset && node.text) {
+                    e.dataTransfer.dropEffect = 'none';
+                    return;
+                }
+                // Block text drops on image rectangles
+                if (window._draggedText !== undefined && node.image) {
+                    e.dataTransfer.dropEffect = 'none';
+                    return;
+                }
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
             }
@@ -207,11 +217,35 @@ export function setupDropHandlers() {
 
     paper.addEventListener('drop', (e) => {
         const targetElement = e.target.closest('.splittable-rect');
-        const asset = window._draggedAsset;
 
+        // Handle text drop
+        if (targetElement && window._draggedText !== undefined) {
+            const targetNode = findNodeById(getCurrentPage(), targetElement.id);
+            if (!targetNode || targetNode.splitState === 'split' || targetNode.image) return;
+
+            e.preventDefault();
+            saveState();
+
+            // Move text from source to target
+            if (window._sourceTextNode) {
+                window._sourceTextNode.text = null;
+            }
+            targetNode.text = window._draggedText;
+
+            window._draggedText = undefined;
+            window._sourceRect = null;
+            window._sourceTextNode = null;
+
+            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+            document.dispatchEvent(new CustomEvent('layoutUpdated'));
+            return;
+        }
+
+        // Handle image drop
+        const asset = window._draggedAsset;
         if (targetElement && asset) {
             const targetNode = findNodeById(getCurrentPage(), targetElement.id);
-            if (!targetNode || targetNode.splitState === 'split') return;
+            if (!targetNode || targetNode.splitState === 'split' || targetNode.text) return;
 
             e.preventDefault();
             saveState();

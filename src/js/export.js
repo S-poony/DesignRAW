@@ -178,6 +178,8 @@ async function performExport(format, qualityMultiplier) {
 
         const timestamp = new Date().getTime();
         if (format === 'pdf' && pdf) {
+            // Add bookmarks for headings from text content
+            addPdfBookmarks(pdf, state.pages);
             pdf.save(`layout-export-${timestamp}.pdf`);
         } else if (zip) {
             const content = await zip.generateAsync({ type: 'blob' });
@@ -229,4 +231,47 @@ function downloadBlob(blob, filename) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
+}
+
+function addPdfBookmarks(pdf, pages) {
+    // Extract headings from all text nodes across pages
+    pages.forEach((page, pageIndex) => {
+        const headings = extractHeadingsFromNode(page);
+        headings.forEach(heading => {
+            try {
+                // jsPDF outline API: pdf.outline.add(parent, title, options)
+                // Page numbers are 1-indexed in jsPDF
+                pdf.outline.add(null, heading.text, { pageNumber: pageIndex + 1 });
+            } catch (e) {
+                // Outline API may not be available in all jsPDF versions
+                console.warn('PDF bookmark not added:', e.message);
+            }
+        });
+    });
+}
+
+function extractHeadingsFromNode(node) {
+    const headings = [];
+
+    if (node.text) {
+        // Extract headings from Markdown using regex
+        const lines = node.text.split('\n');
+        lines.forEach(line => {
+            const match = line.match(/^(#{1,6})\s+(.+)$/);
+            if (match) {
+                headings.push({
+                    level: match[1].length,
+                    text: match[2].trim()
+                });
+            }
+        });
+    }
+
+    if (node.children) {
+        node.children.forEach(child => {
+            headings.push(...extractHeadingsFromNode(child));
+        });
+    }
+
+    return headings;
 }
