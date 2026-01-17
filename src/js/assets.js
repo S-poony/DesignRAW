@@ -313,7 +313,7 @@ export function handleTouchEnd(e) {
 }
 
 async function removeAsset(assetId) {
-    const confirmed = await showConfirm('Are you sure you want to remove this asset? All instances in the layout will be deleted.');
+    const confirmed = await showConfirm('Are you sure you want to remove this asset? All instances in the layout will be deleted.', 'Are you sure?', 'Confirm', 'remove-asset');
     if (!confirmed) return;
 
     saveState();

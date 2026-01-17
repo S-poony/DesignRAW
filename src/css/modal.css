@@ -130,3 +130,23 @@
     color: #6b7280;
     font-weight: 500;
 }
+
+/* Confirmation Checkbox */
+.confirm-checkbox-container {
+    margin: 1rem 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+
+.confirm-checkbox-container label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.confirm-checkbox-container input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}

@@ -65,7 +65,7 @@ export function renderPageList() {
         deleteBtn.onclick = async (e) => {
             e.stopPropagation();
             if (state.pages.length > 1) {
-                const confirmed = await showConfirm('Are you sure you want to delete this page?');
+                const confirmed = await showConfirm('Are you sure you want to delete this page?', 'Are you sure?', 'Confirm', 'delete-page');
                 if (confirmed) {
                     saveState();
                     deletePage(index);

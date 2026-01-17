@@ -34,14 +34,21 @@ export function createDivider(parentRect, orientation, rectA, rectB, startDrag) 
  * @param {string} message 
  * @param {string} title 
  * @param {string} okText
+ * @param {string} preferenceKey - Optional key to store the "Don't ask again" preference
  * @returns {Promise<boolean>}
  */
-export function showConfirm(message, title = 'Are you sure?', okText = 'Confirm') {
+export function showConfirm(message, title = 'Are you sure?', okText = 'Confirm', preferenceKey = null) {
+    if (preferenceKey && localStorage.getItem(`confirm_dont_ask_${preferenceKey}`) === 'true') {
+        return Promise.resolve(true);
+    }
+
     const modal = document.getElementById('confirmation-modal');
     const titleEl = document.getElementById('confirm-title');
     const messageEl = document.getElementById('confirm-message');
     const okBtn = document.getElementById('confirm-ok');
     const cancelBtn = document.getElementById('confirm-cancel');
+    const checkboxContainer = document.getElementById('confirm-checkbox-container');
+    const checkbox = document.getElementById('confirm-dont-ask-again');
 
     if (!modal || !titleEl || !messageEl || !okBtn || !cancelBtn) {
         // Fallback if DOM not fully ready
@@ -52,10 +59,22 @@ export function showConfirm(message, title = 'Are you sure?', okText = 'Confirm'
     messageEl.textContent = message;
     okBtn.textContent = okText;
     cancelBtn.style.display = 'block'; // Ensure cancel is visible
+
+    if (preferenceKey && checkboxContainer) {
+        checkboxContainer.style.display = 'block';
+        if (checkbox) checkbox.checked = false;
+    } else if (checkboxContainer) {
+        checkboxContainer.style.display = 'none';
+    }
+
     modal.classList.add('active');
 
     return new Promise((resolve) => {
         const cleanup = (result) => {
+            if (result && preferenceKey && checkbox && checkbox.checked) {
+                localStorage.setItem(`confirm_dont_ask_${preferenceKey}`, 'true');
+            }
+
             modal.classList.remove('active');
             okBtn.removeEventListener('click', onOk);
             cancelBtn.removeEventListener('click', onCancel);
