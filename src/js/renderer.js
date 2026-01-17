@@ -125,18 +125,39 @@ function renderTextContent(container, node) {
     const editorContainer = document.createElement('div');
     editorContainer.className = 'text-editor-container';
 
-    const editor = document.createElement('textarea');
-    editor.className = 'text-editor';
-    editor.value = node.text || '';
-    editor.placeholder = 'Write your text here... (Markdown supported)';
+    // Preview (shown by default)
+    const preview = document.createElement('div');
+    preview.className = 'markdown-content';
+    preview.innerHTML = marked.parse(node.text || '') || '<span class="text-placeholder">Click to edit...</span>';
 
-    // Prevent click from bubbling to split handler
+    // Editor (hidden by default)
+    const editor = document.createElement('textarea');
+    editor.className = 'text-editor hidden';
+    editor.value = node.text || '';
+    editor.placeholder = 'Write Markdown here...';
+
+    // Click preview to enter edit mode
+    preview.addEventListener('click', (e) => {
+        e.stopPropagation();
+        preview.classList.add('hidden');
+        editor.classList.remove('hidden');
+        editor.focus();
+    });
+
+    // Prevent editor click from bubbling
     editor.addEventListener('click', (e) => e.stopPropagation());
 
-    // Sync text back to state
+    // Sync text on input
     editor.addEventListener('input', () => {
         node.text = editor.value;
         document.dispatchEvent(new CustomEvent('layoutUpdated'));
+    });
+
+    // Exit edit mode on blur (click away)
+    editor.addEventListener('blur', () => {
+        editor.classList.add('hidden');
+        preview.innerHTML = marked.parse(node.text || '') || '<span class="text-placeholder">Click to edit...</span>';
+        preview.classList.remove('hidden');
     });
 
     // Drag handle for moving text
@@ -172,6 +193,7 @@ function renderTextContent(container, node) {
         });
     });
 
+    editorContainer.appendChild(preview);
     editorContainer.appendChild(editor);
     editorContainer.appendChild(dragHandle);
     editorContainer.appendChild(removeBtn);

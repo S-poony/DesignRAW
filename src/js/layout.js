@@ -57,7 +57,7 @@ export function handleSplitClick(event) {
     }
 
     // Text logic: Don't split if clicking text without Shift (Shift required to split)
-    if (node.text && !event.shiftKey) {
+    if ((node.text !== null && node.text !== undefined) && !event.shiftKey) {
         // Do nothing - clicking text area should focus editor, not split
         return;
     }

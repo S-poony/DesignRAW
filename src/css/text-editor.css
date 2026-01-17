@@ -27,6 +27,26 @@
     overflow: auto;
 }
 
+.text-editor-container .markdown-content {
+    width: 100%;
+    height: 100%;
+    cursor: text;
+}
+
+.text-editor-container .text-editor {
+    width: 100%;
+    height: 100%;
+}
+
+.text-editor-container .hidden {
+    display: none !important;
+}
+
+.text-placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
 .text-drag-handle {
     position: absolute;
     top: 5px;
