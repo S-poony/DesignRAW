@@ -53,32 +53,67 @@
     <div id="export-modal" class="modal-overlay">
         <div class="modal-content">
             <h2>Export Layout</h2>
-            <p>Select your preferred format:</p>
-            <div class="export-options">
-                <label>
-                    <input type="radio" name="export-format" value="png" checked> PNG Image
-                </label>
-                <label>
-                    <input type="radio" name="export-format" value="jpeg"> JPEG Image
-                </label>
-                <label>
-                    <input type="radio" name="export-format" value="pdf"> PDF Document
-                </label>
-            </div>
 
-            <div class="quality-control">
+            <!-- Quality Control - Moved to top -->
+            <div class="quality-control top-section">
                 <div class="quality-header">
-                    <label for="export-quality">Export Quality:</label>
+                    <label for="export-quality">Export Resolution:</label>
                     <span id="quality-value">300%</span>
                 </div>
                 <input type="range" id="export-quality" min="100" max="300" step="10" value="300">
                 <div class="quality-info">
-                    Dimensions: <span id="export-dimensions">2382 x 3369 px</span>
+                    Output Size: <span id="export-dimensions">2382 x 3369 px</span>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button id="cancel-export" class="btn-text">Cancel</button>
-                <button id="confirm-export" class="btn-primary">Download</button>
+
+            <div class="export-actions-grid">
+                <!-- Option 1: Web Flipbook -->
+                <div class="export-option-card">
+                    <div class="option-header">
+                        <span class="option-icon">
+                            <svg fill="#4f46e5" width="24px" height="24px" viewBox="0 0 512 512"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="m437.02 74.98c-48.353-48.352-112.64-74.98-181.02-74.98s-132.667 26.628-181.02 74.98-74.98 112.64-74.98 181.02 26.628 132.667 74.98 181.02 112.64 74.98 181.02 74.98 132.667-26.628 181.02-74.98 74.98-112.64 74.98-181.02-26.628-132.667-74.98-181.02zm-2.132 315.679c-15.31-10.361-31.336-19.314-47.952-26.789 7.339-28.617 11.697-59.688 12.784-91.87h79.702c-3.144 44.336-19.244 85.147-44.534 118.659zm-402.31-118.659h79.702c1.088 32.183 5.446 63.254 12.784 91.87-16.616 7.475-32.642 16.427-47.952 26.789-25.29-33.512-41.39-74.323-44.534-118.659zm44.53-150.654c15.31 10.362 31.336 19.315 47.954 26.79-7.338 28.615-11.695 59.683-12.783 91.864h-79.701c3.144-44.334 19.243-85.142 44.53-118.654zm283.519-42.581c-5.863-10.992-12.198-20.911-18.935-29.713 27.069 11.25 51.473 27.658 71.977 47.997-11.625 7.638-23.702 14.369-36.155 20.185-4.886-13.664-10.528-26.547-16.887-38.469zm-12.965 50.404c-29.211 9.792-60.039 14.831-91.662 14.831s-62.451-5.039-91.662-14.831c20.463-58.253 54.273-97.169 91.662-97.169s71.199 38.916 91.662 97.169zm-203.359 110.831c1.056-28.342 4.885-55.421 10.937-80.116 32.136 10.644 66.018 16.116 100.76 16.116s68.624-5.472 100.76-16.116c6.053 24.695 9.881 51.773 10.937 80.116zm223.394 32c-1.057 28.344-4.885 55.424-10.938 80.12-32.139-10.646-66.02-16.12-100.759-16.12s-68.62 5.474-100.759 16.12c-6.053-24.696-9.882-51.776-10.938-80.12zm-216.324-193.235c-6.358 11.922-12 24.805-16.887 38.468-12.452-5.815-24.53-12.547-36.155-20.185 20.503-20.34 44.907-36.747 71.977-47.997-6.737 8.803-13.073 18.722-18.935 29.714zm-16.886 316.008c4.886 13.661 10.528 26.542 16.885 38.462 5.863 10.992 12.198 20.911 18.935 29.713-27.067-11.25-51.469-27.655-71.971-47.992 11.625-7.637 23.701-14.368 36.151-20.183zm29.853-11.938c29.213-9.794 60.04-14.835 91.66-14.835s62.447 5.041 91.66 14.835c-20.463 58.251-54.272 97.165-91.66 97.165s-71.197-38.914-91.66-97.165zm196.287 50.4c6.357-11.92 11.999-24.801 16.885-38.462 12.451 5.815 24.527 12.547 36.151 20.183-20.502 20.337-44.904 36.743-71.971 47.992 6.737-8.802 13.073-18.721 18.935-29.713zm39.093-193.235c-1.088-32.18-5.445-63.249-12.783-91.864 16.618-7.475 32.645-16.428 47.954-26.79 25.287 33.511 41.386 74.319 44.53 118.654z" />
+                            </svg>
+                        </span>
+                        <h3>Publish Online</h3>
+                    </div>
+                    <p class="option-desc">Host as an interactive 3D flipbook. Share with a simple link.</p>
+                    <button id="confirm-publish" class="btn-primary full-width">Publish Flipbook</button>
+                </div>
+
+                <!-- Option 2: Local Download -->
+                <div class="export-option-card">
+                    <div class="option-header">
+                        <span class="option-icon">
+                            <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
+                                    fill="#4f46e5" />
+                                <path
+                                    d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z"
+                                    fill="#4f46e5" />
+                            </svg>
+                        </span>
+                        <h3>Download File</h3>
+                    </div>
+                    <p class="option-desc">Save a local copy to your device.</p>
+
+                    <div class="download-controls">
+                        <select id="export-format-select" class="format-select">
+                            <option value="pdf">PDF Document</option>
+                            <option value="png">PNG Image</option>
+                            <option value="jpeg">JPEG Image</option>
+                        </select>
+                        <button id="confirm-export" class="btn-secondary full-width">Download</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancel-export" class="btn-text">Close</button>
             </div>
         </div>
     </div>

@@ -10,11 +10,14 @@ import { showAlert } from './utils.js';
 const BASE_A4_WIDTH = 794;
 const BASE_A4_HEIGHT = 1123;
 
+const FLIPBOOK_API_ENDPOINT = 'https://content.lojkine.art/api/flipbook';
+
 export function setupExportHandlers() {
     const exportBtn = document.getElementById('export-layout-btn');
     const modal = document.getElementById('export-modal');
     const cancelBtn = document.getElementById('cancel-export');
     const confirmBtn = document.getElementById('confirm-export');
+    const publishConfirmBtn = document.getElementById('confirm-publish');
     const qualitySlider = document.getElementById('export-quality');
     const qualityValue = document.getElementById('quality-value');
     const dimensionsText = document.getElementById('export-dimensions');
@@ -38,6 +41,7 @@ export function setupExportHandlers() {
         updateDimensions();
     });
 
+    // Close button (x) or Footer Close
     cancelBtn.addEventListener('click', () => {
         modal.classList.remove('active');
     });
@@ -49,22 +53,45 @@ export function setupExportHandlers() {
     });
 
     confirmBtn.addEventListener('click', async () => {
-        const format = document.querySelector('input[name="export-format"]:checked').value;
+        // Dropdown value now
+        const formatSelect = document.getElementById('export-format-select');
+        const format = formatSelect.value;
         const qualityMultiplier = parseInt(qualitySlider.value) / 100;
+
         confirmBtn.disabled = true;
+        const originalText = confirmBtn.textContent;
         confirmBtn.textContent = 'Generating...';
 
         try {
             await performExport(format, qualityMultiplier);
         } catch (error) {
             console.error('Export failed:', error);
-            showAlert('Export failed. Please try again.', 'Export Error');
+            showAlert('Export failed. Please try again.', 'Error');
         } finally {
             confirmBtn.disabled = false;
-            confirmBtn.textContent = 'Download';
+            confirmBtn.textContent = originalText;
             modal.classList.remove('active');
         }
     });
+
+    if (publishConfirmBtn) {
+        publishConfirmBtn.addEventListener('click', async () => {
+            const qualityMultiplier = parseInt(qualitySlider.value) / 100;
+            publishConfirmBtn.disabled = true;
+            publishConfirmBtn.textContent = 'Publishing...';
+
+            try {
+                await performPublishFlipbook(qualityMultiplier);
+            } catch (error) {
+                console.error('Publish failed:', error);
+                showAlert('Publishing failed. Please try again.', 'Error');
+            } finally {
+                publishConfirmBtn.disabled = false;
+                publishConfirmBtn.textContent = 'Publish Flipbook';
+                modal.classList.remove('active');
+            }
+        });
+    }
 }
 
 async function performExport(format, qualityMultiplier) {
@@ -193,6 +220,161 @@ async function performExport(format, qualityMultiplier) {
         document.body.removeChild(tempContainer);
         if (loadingOverlay) loadingOverlay.classList.remove('active');
     }
+}
+
+async function performPublishFlipbook(qualityMultiplier) {
+    const loadingOverlay = document.getElementById('export-loading');
+    const progressText = document.getElementById('loading-progress');
+    const loadingStatus = document.getElementById('loading-status');
+
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('active');
+        loadingStatus.textContent = 'Publishing Flipbook...';
+    }
+
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.top = '0';
+    tempContainer.style.left = '0';
+    tempContainer.style.zIndex = '-9999';
+    tempContainer.style.width = `${BASE_A4_WIDTH}px`;
+    tempContainer.style.height = `${BASE_A4_HEIGHT}px`;
+    tempContainer.style.backgroundColor = '#ffffff';
+
+    document.body.appendChild(tempContainer);
+
+    const apiPages = [];
+
+    try {
+        for (let i = 0; i < state.pages.length; i++) {
+            if (progressText) {
+                progressText.textContent = `Rendering page ${i + 1} of ${state.pages.length}...`;
+            }
+
+            const pageLayout = state.pages[i];
+            tempContainer.innerHTML = '';
+            const paperWrapper = document.createElement('div');
+            paperWrapper.className = 'a4-paper';
+            paperWrapper.style.width = '100%';
+            paperWrapper.style.height = '100%';
+            paperWrapper.style.boxShadow = 'none';
+            paperWrapper.style.border = 'none';
+            paperWrapper.style.margin = '0';
+            tempContainer.appendChild(paperWrapper);
+
+            const exportRoot = document.createElement('div');
+            exportRoot.style.width = '100%';
+            exportRoot.style.height = '100%';
+            paperWrapper.appendChild(exportRoot);
+
+            renderLayout(exportRoot, pageLayout);
+            await swapImagesForHighRes(paperWrapper);
+
+            // Remove UI elements
+            paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt').forEach(el => el.remove());
+
+            const canvas = await html2canvas(tempContainer, {
+                scale: qualityMultiplier,
+                useCORS: true,
+                width: BASE_A4_WIDTH,
+                height: BASE_A4_HEIGHT
+            });
+
+            const imageData = canvas.toDataURL('image/jpeg', 0.9);
+            const links = extractLinksForApi(paperWrapper);
+
+            apiPages.push({
+                imageData,
+                width: BASE_A4_WIDTH,
+                height: BASE_A4_HEIGHT,
+                links
+            });
+        }
+
+        if (progressText) progressText.textContent = 'Uploading to server...';
+
+        const bookmarks = extractBookmarksForApi(state.pages);
+
+        const response = await fetch(FLIPBOOK_API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: document.querySelector('h1')?.textContent || 'My Flipbook',
+                pages: apiPages,
+                bookmarks: bookmarks
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to publish flipbook');
+        }
+
+        const result = await response.json();
+        if (result.url) {
+            window.open(result.url, '_blank');
+            showAlert(`Flipbook published successfully!\n\nURL: ${result.url}`, 'Success');
+        }
+    } finally {
+        document.body.removeChild(tempContainer);
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
+    }
+}
+
+function extractLinksForApi(container) {
+    const links = [];
+    const containerRect = container.getBoundingClientRect();
+    const anchorElements = container.querySelectorAll('a');
+
+    anchorElements.forEach(a => {
+        const href = a.getAttribute('href') || '';
+        const rects = a.getClientRects();
+
+        for (let i = 0; i < rects.length; i++) {
+            const r = rects[i];
+
+            // Convert to percentages relative to paper container
+            const x = ((r.left - containerRect.left) / containerRect.width) * 100;
+            const y = ((r.top - containerRect.top) / containerRect.height) * 100;
+            const w = (r.width / containerRect.width) * 100;
+            const h = (r.height / containerRect.height) * 100;
+
+            const linkData = {
+                title: a.textContent.trim(),
+                rect: { x, y, width: w, height: h }
+            };
+
+            if (href.startsWith('#page=')) {
+                linkData.type = 'internal';
+                linkData.targetPage = parseInt(href.replace('#page=', ''));
+            } else if (href.startsWith('http') || href.startsWith('mailto:')) {
+                linkData.type = 'external';
+                linkData.url = href;
+            } else {
+                // Default to external if it starts with anything else (like www.)
+                linkData.type = 'external';
+                linkData.url = href;
+            }
+
+            links.push(linkData);
+        }
+    });
+
+    return links;
+}
+
+function extractBookmarksForApi(pages) {
+    const bookmarks = [];
+    pages.forEach((page, index) => {
+        const headings = extractHeadingsFromNode(page);
+        headings.forEach(h => {
+            bookmarks.push({
+                title: h.text,
+                page: index + 1
+            });
+        });
+    });
+    return bookmarks;
 }
 
 async function swapImagesForHighRes(container) {
