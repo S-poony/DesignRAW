@@ -31,6 +31,7 @@
 
 `click` = edit text
 `esc` = exit edit mode
+`ctrl + k` (with text selected) = insert hyperlink
 
 ### Markdown syntax
 _be careful about the spaces between the special characters and the text_

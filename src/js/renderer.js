@@ -206,9 +206,10 @@ function renderTextContent(container, node, startInEditMode = false) {
             '`': '`'
         };
 
+        const selection = value.substring(start, end);
+
         if (pairs[e.key]) {
             e.preventDefault();
-            const selection = value.substring(start, end);
             let charToInsert = e.key;
             let closingChar = pairs[e.key];
 
@@ -261,6 +262,27 @@ function renderTextContent(container, node, startInEditMode = false) {
         // Exit on Escape
         if (e.key === 'Escape') {
             editor.blur();
+        }
+
+        // Ctrl+K for links
+        if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            const linkText = selection || '';
+            const linkUrl = 'https://';
+            const before = value.substring(0, start);
+            const after = value.substring(end);
+
+            editor.value = before + `[${linkText}](${linkUrl})` + after;
+
+            if (selection) {
+                // If text was selected, highlight the URL part
+                editor.selectionStart = start + linkText.length + 3; // [ + linkText + ] + (
+                editor.selectionEnd = editor.selectionStart + linkUrl.length;
+            } else {
+                // If no selection, place cursor inside brackets
+                editor.selectionStart = editor.selectionEnd = start + 1;
+            }
+            editor.dispatchEvent(new Event('input'));
         }
     });
 
