@@ -242,16 +242,25 @@ function renderTextContent(container, node, startInEditMode = false) {
         // Auto-list on Enter
         if (e.key === 'Enter') {
             const line = value.substring(0, start).split('\n').pop();
-            const listMatch = line.match(/^(\s*)([-*+]|\d+\.)(\s+)/);
+            const listMatch = line.match(/^(\s*)([-*+]|(\d+)\.)(\s+)/);
             if (listMatch) {
                 e.preventDefault();
+                const indent = listMatch[1];
+                const marker = listMatch[2];
+                const number = listMatch[3];
+                const space = listMatch[4];
+
                 // If current line is just the list marker, end the list (Obsidian style)
-                if (line.trim() === listMatch[2]) {
+                if (line.trim() === marker) {
                     const lineStart = start - line.length;
                     editor.value = value.substring(0, lineStart) + '\n' + value.substring(end);
                     editor.selectionStart = editor.selectionEnd = lineStart + 1;
                 } else {
-                    const prefix = '\n' + listMatch[1] + listMatch[2] + listMatch[3];
+                    let nextMarker = marker;
+                    if (number) {
+                        nextMarker = (parseInt(number, 10) + 1) + '.';
+                    }
+                    const prefix = '\n' + indent + nextMarker + space;
                     editor.value = value.substring(0, start) + prefix + value.substring(end);
                     editor.selectionStart = editor.selectionEnd = start + prefix.length;
                 }
