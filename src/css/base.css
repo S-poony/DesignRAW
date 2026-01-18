@@ -8,7 +8,8 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    /* Better for scrollable pages */
     background-color: #f6f3f3;
     /* gray-100 */
     font-family: sans-serif;
