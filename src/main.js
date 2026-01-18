@@ -5,6 +5,7 @@ import { setupExportHandlers } from './js/export.js';
 import { state, getCurrentPage } from './js/state.js';
 import { renderLayout } from './js/renderer.js';
 import { marked } from 'marked';
+import { DIVIDER_SIZE } from './js/constants.js';
 
 import { setupPageHandlers } from './js/pages.js';
 import { setupFileIOHandlers } from './js/fileIO.js';
@@ -83,6 +84,9 @@ function setupGlobalHandlers() {
     window.addEventListener('blur', () => {
         document.body.classList.remove('ctrl-pressed');
     });
+
+    // Inject divider size as CSS variable
+    document.documentElement.style.setProperty('--divider-size', `${DIVIDER_SIZE}px`);
 }
 
 function initialize() {

@@ -15,3 +15,6 @@ export const ASSET_THUMBNAIL_QUALITY = 0.6;
 
 /** Maximum file upload size in MB */
 export const MAX_FILE_SIZE_MB = 20;
+
+/** Width/Height of dividers and hit areas (px) */
+export const DIVIDER_SIZE = 5;

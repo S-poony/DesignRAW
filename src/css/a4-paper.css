@@ -76,13 +76,13 @@
 }
 
 .horizontal-divider {
-    height: 12px;
+    height: var(--divider-size, 12px);
     align-self: stretch;
     cursor: ns-resize;
 }
 
 .vertical-divider {
-    width: 12px;
+    width: var(--divider-size, 12px);
     align-self: stretch;
     cursor: ew-resize;
 }
@@ -111,7 +111,7 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 12px;
+    height: var(--divider-size, 12px);
     cursor: ns-resize;
 }
 
@@ -126,7 +126,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 12px;
+    height: var(--divider-size, 12px);
     cursor: ns-resize;
 }
 
@@ -141,7 +141,7 @@
     top: 0;
     bottom: 0;
     left: 0;
-    width: 12px;
+    width: var(--divider-size, 12px);
     cursor: ew-resize;
 }
 
@@ -156,7 +156,7 @@
     top: 0;
     bottom: 0;
     right: 0;
-    width: 12px;
+    width: var(--divider-size, 12px);
     cursor: ew-resize;
 }
 
