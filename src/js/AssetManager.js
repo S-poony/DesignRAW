@@ -1,4 +1,4 @@
-import { MAX_ASSET_DIMENSION, ASSET_THUMBNAIL_QUALITY } from './constants.js';
+import { MAX_ASSET_DIMENSION, ASSET_THUMBNAIL_QUALITY, MAX_FILE_SIZE_MB } from './constants.js';
 
 /**
  * @typedef {Object} Asset
@@ -22,6 +22,11 @@ export class AssetManager extends EventTarget {
     async processFile(file) {
         if (!file.type.startsWith('image/')) {
             throw new Error('File is not an image');
+        }
+
+        const maxBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+        if (file.size > maxBytes) {
+            throw new Error(`File too large. Maximum size: ${MAX_FILE_SIZE_MB}MB`);
         }
 
         return new Promise((resolve, reject) => {
@@ -58,10 +63,10 @@ export class AssetManager extends EventTarget {
                         const lowResData = canvas.toDataURL('image/jpeg', ASSET_THUMBNAIL_QUALITY);
 
                         resolve({
-                            id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                            id: crypto.randomUUID(),
                             name: file.name,
                             lowResData: lowResData,
-                            fullResData: String(fullResData)
+                            fullResData: fullResData
                         });
                     } catch (err) {
                         reject(err);
@@ -118,6 +123,14 @@ export class AssetManager extends EventTarget {
 
     getAssets() {
         return [...this.assets];
+    }
+
+    /**
+     * Clears all assets from memory
+     */
+    dispose() {
+        this.assets = [];
+        this.dispatchEvent(new CustomEvent('assets:changed', { detail: { type: 'cleared' } }));
     }
 }
 

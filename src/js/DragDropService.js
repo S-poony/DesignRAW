@@ -20,6 +20,13 @@ export class DragDropService {
         this.sourceTextNode = null;
         /** @type {HTMLElement|null} */
         this.touchGhost = null;
+
+        // Cleanup on page visibility change to prevent ghost leaks
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.isDragging()) {
+                this.endDrag();
+            }
+        });
     }
 
     /**

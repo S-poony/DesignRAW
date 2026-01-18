@@ -4,9 +4,22 @@ import { state, updateCurrentId } from './state.js';
 let undoStack = [];
 let redoStack = [];
 
+/**
+ * Clone state using structuredClone with JSON fallback
+ * @param {any} obj
+ * @returns {any}
+ */
+function cloneState(obj) {
+    try {
+        return structuredClone(obj);
+    } catch {
+        return JSON.parse(JSON.stringify(obj));
+    }
+}
+
 export function saveState() {
     undoStack.push({
-        pages: JSON.parse(JSON.stringify(state.pages)),
+        pages: cloneState(state.pages),
         currentPageIndex: state.currentPageIndex,
         currentId: state.currentId
     });
@@ -20,7 +33,7 @@ export function undo(rebindCallback) {
     if (undoStack.length === 0) return;
 
     redoStack.push({
-        pages: JSON.parse(JSON.stringify(state.pages)),
+        pages: cloneState(state.pages),
         currentPageIndex: state.currentPageIndex,
         currentId: state.currentId
     });
@@ -33,7 +46,7 @@ export function redo(rebindCallback) {
     if (redoStack.length === 0) return;
 
     undoStack.push({
-        pages: JSON.parse(JSON.stringify(state.pages)),
+        pages: cloneState(state.pages),
         currentPageIndex: state.currentPageIndex,
         currentId: state.currentId
     });

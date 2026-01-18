@@ -1,5 +1,8 @@
 import { state } from './state.js';
 
+/** Prefix for localStorage keys to avoid conflicts */
+const STORAGE_PREFIX = 'layout_splitter:';
+
 export function createRectangle(handleSplitClick) {
     state.currentId++;
     const newRect = document.createElement('div');
@@ -38,7 +41,7 @@ export function createDivider(parentRect, orientation, rectA, rectB, startDrag) 
  * @returns {Promise<boolean>}
  */
 export function showConfirm(message, title = 'Are you sure?', okText = 'Confirm', preferenceKey = null) {
-    if (preferenceKey && localStorage.getItem(`confirm_dont_ask_${preferenceKey}`) === 'true') {
+    if (preferenceKey && localStorage.getItem(`${STORAGE_PREFIX}confirm_dont_ask:${preferenceKey}`) === 'true') {
         return Promise.resolve(true);
     }
 
@@ -72,7 +75,7 @@ export function showConfirm(message, title = 'Are you sure?', okText = 'Confirm'
     return new Promise((resolve) => {
         const cleanup = (result) => {
             if (result && preferenceKey && checkbox && checkbox.checked) {
-                localStorage.setItem(`confirm_dont_ask_${preferenceKey}`, 'true');
+                localStorage.setItem(`${STORAGE_PREFIX}confirm_dont_ask:${preferenceKey}`, 'true');
             }
 
             modal.classList.remove('active');

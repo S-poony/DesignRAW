@@ -5,7 +5,9 @@ import { assetManager } from './AssetManager.js';
 import { dragDropService } from './DragDropService.js';
 import { attachImageDragHandlers, handleTouchStart, handleTouchMove, handleTouchEnd } from './assets.js';
 import { handleSplitClick, startDrag, startEdgeDrag } from './layout.js';
+import { saveState } from './history.js';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 // Configure marked for GFM and better line breaks
 marked.use({
@@ -77,12 +79,10 @@ function renderLeafNode(container, node) {
             removeBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                import('./history.js').then(({ saveState }) => {
-                    saveState();
-                    node.image = null;
-                    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-                    document.dispatchEvent(new CustomEvent('layoutUpdated'));
-                });
+                saveState();
+                node.image = null;
+                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                document.dispatchEvent(new CustomEvent('layoutUpdated'));
             });
 
             container.appendChild(img);
@@ -107,15 +107,12 @@ function renderLeafNode(container, node) {
         // Handle click on prompt to start editing
         prompt.addEventListener('click', (e) => {
             e.stopPropagation();
-            const nodeId = node.id; // Capture ID before re-render
-            import('./history.js').then(({ saveState }) => {
-                saveState();
-                node.text = '';
-                // Mark that we want edit mode
-                node._startInEditMode = true;
-                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-                document.dispatchEvent(new CustomEvent('layoutUpdated'));
-            });
+            saveState();
+            node.text = '';
+            // Mark that we want edit mode
+            node._startInEditMode = true;
+            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+            document.dispatchEvent(new CustomEvent('layoutUpdated'));
         });
     }
 
@@ -138,7 +135,7 @@ function renderTextContent(container, node, startInEditMode = false) {
     const preview = document.createElement('div');
     preview.className = startInEditMode ? 'markdown-content hidden' : 'markdown-content';
     preview.draggable = true;
-    preview.innerHTML = marked.parse(node.text || '') || '<span class="text-placeholder">Click to edit...</span>';
+    preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
 
     // Editor
     const editor = document.createElement('textarea');
@@ -190,7 +187,7 @@ function renderTextContent(container, node, startInEditMode = false) {
     editor.addEventListener('input', () => {
         node.text = editor.value;
         // Also update preview in real-time so it's ready when switching back
-        preview.innerHTML = marked.parse(node.text || '') || '<span class="text-placeholder">Click to edit...</span>';
+        preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
         document.dispatchEvent(new CustomEvent('layoutUpdated'));
     });
 
@@ -273,7 +270,7 @@ function renderTextContent(container, node, startInEditMode = false) {
     // Exit edit mode on blur (click away)
     editor.addEventListener('blur', () => {
         editor.classList.add('hidden');
-        preview.innerHTML = marked.parse(node.text || '') || '<span class="text-placeholder">Click to edit...</span>';
+        preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
         preview.classList.remove('hidden');
 
         // Prevent accidental splitting when clicking away from an active editor
@@ -290,35 +287,16 @@ function renderTextContent(container, node, startInEditMode = false) {
     removeBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        import('./history.js').then(({ saveState }) => {
-            saveState();
-            node.text = null;
-            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-            document.dispatchEvent(new CustomEvent('layoutUpdated'));
-        });
+        saveState();
+        node.text = null;
+        renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+        document.dispatchEvent(new CustomEvent('layoutUpdated'));
     });
 
     editorContainer.appendChild(preview);
     editorContainer.appendChild(editor);
     editorContainer.appendChild(removeBtn);
     container.appendChild(editorContainer);
-}
-
-function attachTextDragHandlers(editorContainer, node, hostRectElement) {
-    editorContainer.draggable = true;
-    editorContainer.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', 'text-content');
-        dragDropService.startDrag({ text: node.text, sourceRect: hostRectElement, sourceTextNode: node });
-    });
-
-    editorContainer.addEventListener('dragend', () => {
-        dragDropService.endDrag();
-    });
-
-    // Touch support
-    editorContainer.addEventListener('touchstart', (e) => handleTouchStart(e, { text: node.text, sourceRect: hostRectElement, sourceTextNode: node }), { passive: false });
-    editorContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-    editorContainer.addEventListener('touchend', handleTouchEnd);
 }
 
 function createDOMRect(node, parentOrientation) {
