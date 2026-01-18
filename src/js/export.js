@@ -151,9 +151,9 @@ async function performExport(format, qualityMultiplier) {
             renderLayout(exportRoot, pageLayout);
 
             await swapImagesForHighRes(paperWrapper);
+            await document.fonts.ready;
 
-            const removeBtns = paperWrapper.querySelectorAll('.remove-image-btn');
-            removeBtns.forEach(btn => btn.remove());
+            paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt, .align-text-btn, .text-editor').forEach(el => el.remove());
 
             const canvas = await html2canvas(tempContainer, {
                 scale: qualityMultiplier,
@@ -269,9 +269,10 @@ async function performPublishFlipbook(qualityMultiplier) {
 
             renderLayout(exportRoot, pageLayout);
             await swapImagesForHighRes(paperWrapper);
+            await document.fonts.ready;
 
             // Remove UI elements
-            paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt').forEach(el => el.remove());
+            paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt, .align-text-btn, .text-editor').forEach(el => el.remove());
 
             const canvas = await html2canvas(tempContainer, {
                 scale: qualityMultiplier,
