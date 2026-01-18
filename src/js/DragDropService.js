@@ -53,7 +53,9 @@ export class DragDropService {
      */
     startTouchDrag(e, data) {
         this.startDrag(data);
-        this.createGhost(e.touches[0], data);
+        if (e.touches && e.touches.length > 0) {
+            this.createGhost(e.touches[0], data);
+        }
     }
 
     /**
@@ -109,7 +111,8 @@ export class DragDropService {
         if (!this.isDragging() || !this.touchGhost) return;
         if (e.cancelable) e.preventDefault();
 
-        const touch = e.touches[0];
+        const touch = e.touches && e.touches.length > 0 ? e.touches[0] : null;
+        if (!touch) return;
         this.touchGhost.style.left = `${touch.clientX - GHOST_SIZE / 2}px`;
         this.touchGhost.style.top = `${touch.clientY - GHOST_SIZE / 2}px`;
 

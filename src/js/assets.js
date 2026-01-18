@@ -151,9 +151,11 @@ function renderAssetList() {
         }, { passive: false });
 
         item.addEventListener('touchend', (e) => {
-            const touch = e.changedTouches[0];
-            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-            handleDropLogic(target);
+            const touch = e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0] : null;
+            if (touch) {
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                handleDropLogic(target);
+            }
             dragDropService.endDrag();
         });
 
@@ -253,9 +255,11 @@ export function handleTouchMove(e) {
 }
 
 export function handleTouchEnd(e) {
-    const touch = e.changedTouches[0];
-    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-    handleDropLogic(target);
+    const touch = e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0] : null;
+    if (touch) {
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        handleDropLogic(target);
+    }
     dragDropService.endDrag();
 }
 

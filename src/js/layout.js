@@ -164,8 +164,9 @@ export function startDrag(event, dividerElement = null) {
     const parent = document.getElementById(parentId);
 
     const orientation = divider.getAttribute('data-orientation');
-    state.startX = event.clientX || event.touches[0].clientX;
-    state.startY = event.clientY || event.touches[0].clientY;
+    const isTouch = event.touches && event.touches.length > 0;
+    state.startX = isTouch ? event.touches[0].clientX : event.clientX;
+    state.startY = isTouch ? event.touches[0].clientY : event.clientY;
 
     const parentRect = parent.getBoundingClientRect();
     const rectARect = rectA.getBoundingClientRect();
@@ -199,8 +200,9 @@ export function startEdgeDrag(event, edge) {
     event.stopPropagation();
     saveState();
 
-    const clientX = event.clientX || event.touches[0].clientX;
-    const clientY = event.clientY || event.touches[0].clientY;
+    const isTouch = event.touches && event.touches.length > 0;
+    const clientX = isTouch ? event.touches[0].clientX : event.clientX;
+    const clientY = isTouch ? event.touches[0].clientY : event.clientY;
 
     const oldLayout = getCurrentPage();
     const orientation = (edge === 'left' || edge === 'right') ? 'vertical' : 'horizontal';
@@ -251,8 +253,9 @@ function onDrag(event) {
     const rectA = divider.rectA;
     const rectB = divider.rectB;
 
-    const clientX = event.clientX || event.touches[0].clientX;
-    const clientY = event.clientY || event.touches[0].clientY;
+    const isTouch = event.touches && event.touches.length > 0;
+    const clientX = isTouch ? event.touches[0].clientX : event.clientX;
+    const clientY = isTouch ? event.touches[0].clientY : event.clientY;
 
     let delta = (orientation === 'vertical') ? (clientX - state.startX) : (clientY - state.startY);
 
