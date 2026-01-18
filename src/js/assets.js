@@ -174,10 +174,6 @@ function updateDragFeedback(target) {
     } else if (targetElement) {
         const node = findNodeById(getCurrentPage(), targetElement.id);
         if (node && node.splitState === 'unsplit') {
-            // Block image drops on text rectangles and vice versa
-            if (dragDropService.draggedAsset && node.text) return;
-            if (dragDropService.draggedText !== undefined && node.image) return;
-
             targetElement.classList.add('touch-drag-over');
         }
     }
@@ -206,34 +202,42 @@ function handleDropLogic(target) {
     } else if (targetElement) {
         const targetNode = findNodeById(getCurrentPage(), targetElement.id);
         if (targetNode && targetNode.splitState === 'unsplit') {
-            // Handle text drop
-            if (dragData.text !== undefined && !targetNode.image) {
-                saveState();
-                if (dragData.sourceTextNode) {
-                    dragData.sourceTextNode.text = null;
+            const sourceRect = dragDropService.sourceRect;
+            const sourceNode = sourceRect ? findNodeById(getCurrentPage(), sourceRect.id) : null;
+
+            saveState();
+
+            if (sourceNode) {
+                // SWAP logic when dragging between rectangles
+                const sourceImage = sourceNode.image ? { ...sourceNode.image } : null;
+                const sourceText = sourceNode.text;
+
+                const targetImage = targetNode.image ? { ...targetNode.image } : null;
+                const targetText = targetNode.text;
+
+                // Set target to source's old content
+                targetNode.image = sourceImage;
+                targetNode.text = sourceText;
+
+                // Set source to target's old content
+                sourceNode.image = targetImage;
+                sourceNode.text = targetText;
+            } else {
+                // OVERWRITE logic when dragging from sidebar
+                if (dragData.asset) {
+                    targetNode.image = {
+                        assetId: dragData.asset.id,
+                        fit: 'cover'
+                    };
+                    targetNode.text = null;
+                } else if (dragData.text !== undefined) {
+                    targetNode.text = dragData.text;
+                    targetNode.image = null;
                 }
-                targetNode.text = dragData.text;
-                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-                document.dispatchEvent(new CustomEvent('layoutUpdated'));
             }
-            // Handle image drop
-            else if (dragData.asset && !targetNode.text) {
-                saveState();
-                let fit = 'cover';
-                if (dragData.sourceRect) {
-                    const sourceNode = findNodeById(getCurrentPage(), dragData.sourceRect.id);
-                    if (sourceNode && sourceNode.image) {
-                        fit = sourceNode.image.fit;
-                        sourceNode.image = null;
-                    }
-                }
-                targetNode.image = {
-                    assetId: dragData.asset.id,
-                    fit: fit
-                };
-                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-                document.dispatchEvent(new CustomEvent('layoutUpdated'));
-            }
+
+            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+            document.dispatchEvent(new CustomEvent('layoutUpdated'));
         }
     }
 }
@@ -337,16 +341,6 @@ export function setupDropHandlers() {
         if (targetElement) {
             const node = findNodeById(getCurrentPage(), targetElement.id);
             if (node && node.splitState === 'unsplit') {
-                // Block image drops on text rectangles
-                if (dragDropService.draggedAsset && node.text) {
-                    e.dataTransfer.dropEffect = 'none';
-                    return;
-                }
-                // Block text drops on image rectangles
-                if (dragDropService.draggedText !== undefined && node.image) {
-                    e.dataTransfer.dropEffect = 'none';
-                    return;
-                }
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
             }
