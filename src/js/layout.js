@@ -98,10 +98,12 @@ export function handleSplitClick(event) {
     }
 
     // If there was text, migrate it in state
-    if (node.text) {
+    if (node.text !== null && node.text !== undefined) {
         const targetNode = event.ctrlKey ? childB : childA;
         targetNode.text = node.text;
+        targetNode.textAlign = node.textAlign;
         node.text = null;
+        node.textAlign = null;
     }
 
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
@@ -139,8 +141,20 @@ export function deleteRectangle(rectElement) {
         parentNode.children = null;
         parentNode.image = siblingNode.image;
         parentNode.text = siblingNode.text;
+        parentNode.textAlign = siblingNode.textAlign;
         parentNode.orientation = null;
     }
+
+    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
+}
+
+export function toggleTextAlignment(rectId) {
+    const node = findNodeById(getCurrentPage(), rectId);
+    if (!node || (node.text === null && node.text === undefined)) return;
+
+    saveState();
+    node.textAlign = node.textAlign === 'center' ? 'left' : 'center';
 
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
     document.dispatchEvent(new CustomEvent('layoutUpdated'));

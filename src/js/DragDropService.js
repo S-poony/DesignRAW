@@ -21,6 +21,8 @@ export class DragDropService {
         this.sourceRect = null;
         /** @type {Object|null} */
         this.sourceTextNode = null;
+        /** @type {string|undefined} */
+        this.draggedTextAlign = undefined;
         /** @type {HTMLElement|null} */
         this.touchGhost = null;
 
@@ -41,6 +43,7 @@ export class DragDropService {
         this.draggedPageIndex = data.pageIndex !== undefined ? data.pageIndex : undefined;
         this.sourceRect = data.sourceRect || null;
         this.sourceTextNode = data.sourceTextNode || null;
+        this.draggedTextAlign = data.textAlign || undefined;
 
         if (this.sourceRect) {
             this.sourceRect.classList.add(this.draggedAsset ? 'moving-image' : 'moving-text');

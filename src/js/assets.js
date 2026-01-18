@@ -197,7 +197,10 @@ function handleDropLogic(target) {
         const sourceNode = findNodeById(getCurrentPage(), dragData.sourceRect.id);
         if (sourceNode) {
             if (dragData.asset) sourceNode.image = null;
-            if (dragData.text !== undefined) sourceNode.text = null;
+            if (dragData.text !== undefined) {
+                sourceNode.text = null;
+                sourceNode.textAlign = null;
+            }
         }
         renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
         document.dispatchEvent(new CustomEvent('layoutUpdated'));
@@ -213,17 +216,21 @@ function handleDropLogic(target) {
                 // SWAP logic when dragging between rectangles
                 const sourceImage = sourceNode.image ? { ...sourceNode.image } : null;
                 const sourceText = sourceNode.text;
+                const sourceTextAlign = sourceNode.textAlign;
 
                 const targetImage = targetNode.image ? { ...targetNode.image } : null;
                 const targetText = targetNode.text;
+                const targetTextAlign = targetNode.textAlign;
 
                 // Set target to source's old content
                 targetNode.image = sourceImage;
                 targetNode.text = sourceText;
+                targetNode.textAlign = sourceTextAlign;
 
                 // Set source to target's old content
                 sourceNode.image = targetImage;
                 sourceNode.text = targetText;
+                sourceNode.textAlign = targetTextAlign;
             } else {
                 // OVERWRITE logic when dragging from sidebar
                 if (dragData.asset) {
@@ -234,6 +241,7 @@ function handleDropLogic(target) {
                     targetNode.text = null;
                 } else if (dragData.text !== undefined) {
                     targetNode.text = dragData.text;
+                    targetNode.textAlign = dragData.textAlign;
                     targetNode.image = null;
                 }
             }
