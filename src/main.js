@@ -20,14 +20,41 @@ function setupGlobalHandlers() {
 
         // Undo: Ctrl + Z
         if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
-            e.preventDefault();
-            undo(rebindEvents);
+            const target = e.target;
+            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+            if (isInput) {
+                // If we're in a text editor and it's empty (or will be after browser undo),
+                // we should trigger global undo instead
+                if (target.tagName === 'TEXTAREA') {
+                    // Check if the textarea is empty or has minimal content
+                    const isEmpty = !target.value || target.value.trim() === '';
+
+                    if (isEmpty) {
+                        // Empty editor: trigger global undo to remove the text node
+                        e.preventDefault();
+                        undo(rebindEvents);
+                    }
+                    // Otherwise, let the native undo work
+                }
+                // For other inputs, let native undo work
+            } else {
+                // Not in a text input: trigger global undo
+                e.preventDefault();
+                undo(rebindEvents);
+            }
         }
 
         // Redo: Ctrl + Y or Ctrl + Shift + Z
         if ((e.ctrlKey && e.key.toLowerCase() === 'y') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z')) {
-            e.preventDefault();
-            redo(rebindEvents);
+            const target = e.target;
+            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+            // Only trigger global redo if NOT in a text input
+            if (!isInput) {
+                e.preventDefault();
+                redo(rebindEvents);
+            }
         }
 
         // Create Text: Tab (if hovering over an empty rectangle)
