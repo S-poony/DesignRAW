@@ -8,7 +8,7 @@ import { renderLayout } from './renderer.js';
 const defaultSettings = {
     text: {
         fontFamily: 'sans-serif',
-        fontSize: 14, // px
+        fontSize: 20, // px
         textColor: '#374151'
     },
     paper: {
