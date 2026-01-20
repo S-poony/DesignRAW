@@ -10,7 +10,6 @@
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    backdrop-filter: blur(4px);
     transition: all 0.2s ease;
 }
 
@@ -393,6 +392,55 @@
     outline: none;
     border-color: #4f46e5;
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Font family selector - show each option in its font */
+#setting-font-family option[value="sans-serif"] {
+    font-family: sans-serif;
+}
+
+#setting-font-family option[value="'Inter', sans-serif"] {
+    font-family: 'Inter', sans-serif;
+}
+
+#setting-font-family option[value="'Roboto', sans-serif"] {
+    font-family: 'Roboto', sans-serif;
+}
+
+#setting-font-family option[value="'Open Sans', sans-serif"] {
+    font-family: 'Open Sans', sans-serif;
+}
+
+#setting-font-family option[value="'Lato', sans-serif"] {
+    font-family: 'Lato', sans-serif;
+}
+
+#setting-font-family option[value="'Montserrat', sans-serif"] {
+    font-family: 'Montserrat', sans-serif;
+}
+
+#setting-font-family option[value="'Playfair Display', serif"] {
+    font-family: 'Playfair Display', serif;
+}
+
+#setting-font-family option[value="'Merriweather', serif"] {
+    font-family: 'Merriweather', serif;
+}
+
+#setting-font-family option[value="'Georgia', serif"] {
+    font-family: 'Georgia', serif;
+}
+
+#setting-font-family option[value="serif"] {
+    font-family: serif;
+}
+
+#setting-font-family option[value="'Courier New', monospace"] {
+    font-family: 'Courier New', monospace;
+}
+
+#setting-font-family option[value="monospace"] {
+    font-family: monospace;
 }
 
 /* Range Slider */
