@@ -145,8 +145,13 @@ function renderTextContent(container, node, startInEditMode = false) {
 
     // Auto-focus if starting in edit mode
     if (startInEditMode) {
+        container.classList.add('is-editing');
         setTimeout(() => editor.focus(), 0);
     }
+
+    editor.addEventListener('focus', () => {
+        container.classList.add('is-editing');
+    });
 
     // Drag preview to move text (like images)
     preview.addEventListener('dragstart', (e) => {
@@ -300,6 +305,7 @@ function renderTextContent(container, node, startInEditMode = false) {
 
     // Exit edit mode on blur (click away)
     editor.addEventListener('blur', () => {
+        container.classList.remove('is-editing');
         editor.classList.add('hidden');
         preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
         preview.classList.remove('hidden');

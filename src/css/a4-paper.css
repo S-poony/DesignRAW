@@ -230,35 +230,8 @@
     z-index: 1;
 }
 
-.rectangle-base:hover::after {
-    background-color: rgba(0, 0, 0, 0.03);
-}
-
-/* Visual styling for initial rectangle */
-.rectangle-initial {
-    background-color: transparent !important;
-    color: #6b7280;
-    font-size: 1.125rem;
-    font-weight: 500;
-    cursor: pointer;
-    position: relative;
-    transition: background-color 0.15s ease-in-out;
-}
-
-.rectangle-initial::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0);
-    transition: background-color 0.15s;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.rectangle-initial:hover::after {
+/* Leaf node hover effect (non-destructive) */
+.splittable-rect[data-split-state="unsplit"]:not(.is-editing):hover::after {
     background-color: rgba(0, 0, 0, 0.03);
 }
 
