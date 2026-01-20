@@ -217,7 +217,7 @@ function syncFormWithSettings() {
 
     if (coverPreview) {
         if (settings.paper.coverImage) {
-            coverPreview.innerHTML = `<img src="${settings.paper.coverImage}" alt="Cover preview">`;
+            coverPreview.innerHTML = `<img src="${settings.paper.coverImage}" alt="Cover preview" style="opacity: ${settings.paper.coverImageOpacity}">`;
         } else {
             coverPreview.innerHTML = '<span>No image selected</span>';
         }
@@ -352,6 +352,12 @@ function setupPaperControls() {
         const value = parseInt(e.target.value, 10) / 100;
         if (coverOpacityValue) coverOpacityValue.textContent = `${Math.round(value * 100)}%`;
         updateSetting('paper', 'coverImageOpacity', value);
+
+        // Update preview opacity in real-time
+        const previewImg = document.querySelector('#cover-image-preview img');
+        if (previewImg) {
+            previewImg.style.opacity = value;
+        }
     });
 
     pageNumbersToggle?.addEventListener('change', (e) => {
