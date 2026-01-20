@@ -27,7 +27,7 @@ body {
     display: flex;
     flex-direction: row;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1700px;
     justify-content: center;
     position: relative;
     padding: 1rem;
@@ -172,6 +172,5 @@ hr {
         /* Above the title on mobile */
         justify-content: center;
         padding: 0.5rem 0;
-        gap: 0.5rem;
     }
 }

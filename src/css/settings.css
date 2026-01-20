@@ -4,7 +4,7 @@
 
 #settings-container {
     display: none;
-    z-index: 1000;
+    z-index: 100;
 }
 
 #settings-container.active {
@@ -12,46 +12,46 @@
 }
 
 /* Sidebar Mode (Wide Screens) */
-@media (min-width: 1700px) {
+@media (min-width: 1400px) {
     #settings-container {
-        position: fixed;
-        top: 0;
-        right: 0;
+        position: relative;
         width: 320px;
-        height: 100vh;
         background: white;
-        border-left: 1px solid #e5e7eb;
-        display: flex !important;
-        box-shadow: -4px 0 15px rgba(0, 0, 0, 0.05);
-        z-index: 100;
-        transform: translateX(0);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    #settings-container:not(.active) {
-        transform: translateX(100%);
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        flex-direction: column;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        max-height: calc(100vh - 4rem);
+        overflow-y: auto;
+        flex-shrink: 0;
     }
 
     #settings-container .settings-content {
         max-width: none;
         width: 100%;
-        height: 100%;
+        height: auto;
         border-radius: 0;
         box-shadow: none;
-        padding: 1.25rem;
+        padding: 0;
+        background: transparent;
     }
 
-    #settings-container h2 {
-        font-size: 1.1rem;
+    #settings-container .settings-sections {
+        overflow-y: visible;
+        /* Let the container handle scrolling if needed */
+        margin-right: 0;
+        padding-right: 0;
     }
 
     #settings-close {
         display: none;
+        /* "Done" button hidden in sidebar mode */
     }
 }
 
 /* Modal Mode (Standard/Mobile) */
-@media (max-width: 1699px) {
+@media (max-width: 1399px) {
     #settings-container.active {
         position: fixed;
         top: 0;
@@ -75,6 +75,8 @@
         max-width: 500px;
         max-height: 85vh;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 }
 
