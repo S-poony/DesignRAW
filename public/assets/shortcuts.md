@@ -8,10 +8,10 @@
 
 ### Empty rectangle
 
-`click` = split
-`ctrl + click` = delete rectangle
-`alt + click` = alternate split 
-`tab` = write text
+`Any letter` = write text
+`space` = split
+`Arrows` = navigation
+`ctrl + space` = delete rectangle
 
 ### Rectangle with content
 
@@ -29,8 +29,9 @@
 
 ### Text
 
-`click` = edit text
-`esc` = exit edit mode
+`Any alphanumeric key` = edit text
+`Enter` = edit text
+`Escape` = exit edit mode
 `ctrl + k` (with text selected) = insert hyperlink
 
 ### Markdown syntax

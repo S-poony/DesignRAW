@@ -79,12 +79,12 @@
                     <details id="shortcuts-dropdown" class="shortcuts-dropdown">
                         <summary>
                             <span class="summary-icon">
-                                <span class="icon icon-keyboard"></span>
+                                <span class="icon icon-keyboard" aria-hidden="true"></span>
                             </span>
                             Shortcuts
                             <span class="toggle-icon">
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <polyline points="2 4 6 8 10 4"></polyline>
                                 </svg>
                             </span>
@@ -100,7 +100,7 @@
                             <h2>Settings</h2>
                             <button id="settings-close-x" class="btn-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
+                                    stroke-width="2" aria-hidden="true">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
@@ -111,7 +111,7 @@
                             <!-- Text Settings -->
                             <div class="settings-section">
                                 <h3 class="settings-section-title">
-                                    <span class="icon icon-text"></span>
+                                    <span class="icon icon-text" aria-hidden="true"></span>
                                     Text
                                 </h3>
                                 <div class="settings-group">
@@ -145,19 +145,25 @@
                                         <div class="color-swatch-grid" id="text-color-presets">
                                             <!-- Presets populated by JS -->
                                             <button class="color-swatch" style="background-color: #374151"
-                                                data-color="#374151" title="Charcoal"></button>
+                                                data-color="#374151" title="Charcoal"
+                                                aria-label="Select Charcoal color"></button>
                                             <button class="color-swatch" style="background-color: #4f46e5"
-                                                data-color="#4f46e5" title="Indigo"></button>
+                                                data-color="#4f46e5" title="Indigo"
+                                                aria-label="Select Indigo color"></button>
                                             <button class="color-swatch" style="background-color: #0ea5e9"
-                                                data-color="#0ea5e9" title="Sky"></button>
+                                                data-color="#0ea5e9" title="Sky" aria-label="Select Sky color"></button>
                                             <button class="color-swatch" style="background-color: #10b981"
-                                                data-color="#10b981" title="Emerald"></button>
+                                                data-color="#10b981" title="Emerald"
+                                                aria-label="Select Emerald color"></button>
                                             <button class="color-swatch" style="background-color: #f59e0b"
-                                                data-color="#f59e0b" title="Amber"></button>
+                                                data-color="#f59e0b" title="Amber"
+                                                aria-label="Select Amber color"></button>
                                             <button class="color-swatch" style="background-color: #ef4444"
-                                                data-color="#ef4444" title="Rose"></button>
+                                                data-color="#ef4444" title="Rose"
+                                                aria-label="Select Rose color"></button>
                                             <button class="color-swatch" style="background-color: #000000"
-                                                data-color="#000000" title="Black"></button>
+                                                data-color="#000000" title="Black"
+                                                aria-label="Select Black color"></button>
                                         </div>
                                         <div class="custom-color-row">
                                             <button class="custom-color-trigger" id="custom-text-color-trigger">
@@ -175,7 +181,7 @@
                             <!-- Paper Settings -->
                             <div class="settings-section">
                                 <h3 class="settings-section-title">
-                                    <span class="icon icon-page"></span>
+                                    <span class="icon icon-page" aria-hidden="true"></span>
                                     Paper
                                 </h3>
                                 <div class="settings-group">
@@ -183,17 +189,23 @@
                                     <div class="color-selection-container" data-setting="paper-color">
                                         <div class="color-swatch-grid" id="paper-color-presets">
                                             <button class="color-swatch light-color" style="background-color: #ffffff"
-                                                data-color="#ffffff" title="White"></button>
+                                                data-color="#ffffff" title="White"
+                                                aria-label="Select White background"></button>
                                             <button class="color-swatch light-color" style="background-color: #fdfbf7"
-                                                data-color="#fdfbf7" title="Cream"></button>
+                                                data-color="#fdfbf7" title="Cream"
+                                                aria-label="Select Cream background"></button>
                                             <button class="color-swatch light-color" style="background-color: #f8fafc"
-                                                data-color="#f8fafc" title="Slate"></button>
+                                                data-color="#f8fafc" title="Slate"
+                                                aria-label="Select Slate background"></button>
                                             <button class="color-swatch light-color" style="background-color: #f0fdf4"
-                                                data-color="#f0fdf4" title="Mint"></button>
+                                                data-color="#f0fdf4" title="Mint"
+                                                aria-label="Select Mint background"></button>
                                             <button class="color-swatch light-color" style="background-color: #f0f9ff"
-                                                data-color="#f0f9ff" title="Sky"></button>
+                                                data-color="#f0f9ff" title="Sky"
+                                                aria-label="Select Sky background"></button>
                                             <button class="color-swatch light-color" style="background-color: #fff1f2"
-                                                data-color="#fff1f2" title="Rose"></button>
+                                                data-color="#fff1f2" title="Rose"
+                                                aria-label="Select Rose background"></button>
                                         </div>
                                         <div class="custom-color-row">
                                             <button class="custom-color-trigger" id="custom-paper-color-trigger">
@@ -241,7 +253,7 @@
                             <!-- Divider Settings -->
                             <div class="settings-section">
                                 <h3 class="settings-section-title">
-                                    <span class="icon icon-divider"></span>
+                                    <span class="icon icon-divider" aria-hidden="true"></span>
                                     Dividers
                                 </h3>
                                 <div class="settings-group">
@@ -316,7 +328,7 @@
                     <div class="option-header">
                         <span class="option-icon">
                             <svg fill="#4f46e5" width="24px" height="24px" viewBox="0 0 512 512"
-                                xmlns="http://www.w3.org/2000/svg">
+                                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path
                                     d="m437.02 74.98c-48.353-48.352-112.64-74.98-181.02-74.98s-132.667 26.628-181.02 74.98-74.98 112.64-74.98 181.02 26.628 132.667 74.98 181.02 112.64 74.98 181.02 74.98 132.667-26.628 181.02-74.98 74.98-112.64 74.98-181.02-26.628-132.667-74.98-181.02zm-2.132 315.679c-15.31-10.361-31.336-19.314-47.952-26.789 7.339-28.617 11.697-59.688 12.784-91.87h79.702c-3.144 44.336-19.244 85.147-44.534 118.659zm-402.31-118.659h79.702c1.088 32.183 5.446 63.254 12.784 91.87-16.616 7.475-32.642 16.427-47.952 26.789-25.29-33.512-41.39-74.323-44.534-118.659zm44.53-150.654c15.31 10.362 31.336 19.315 47.954 26.79-7.338 28.615-11.695 59.683-12.783 91.864h-79.701c3.144-44.334 19.243-85.142 44.53-118.654zm283.519-42.581c-5.863-10.992-12.198-20.911-18.935-29.713 27.069 11.25 51.473 27.658 71.977 47.997-11.625 7.638-23.702 14.369-36.155 20.185-4.886-13.664-10.528-26.547-16.887-38.469zm-12.965 50.404c-29.211 9.792-60.039 14.831-91.662 14.831s-62.451-5.039-91.662-14.831c20.463-58.253 54.273-97.169 91.662-97.169s71.199 38.916 91.662 97.169zm-203.359 110.831c1.056-28.342 4.885-55.421 10.937-80.116 32.136 10.644 66.018 16.116 100.76 16.116s68.624-5.472 100.76-16.116c6.053 24.695 9.881 51.773 10.937 80.116zm223.394 32c-1.057 28.344-4.885 55.424-10.938 80.12-32.139-10.646-66.02-16.12-100.759-16.12s-68.62 5.474-100.759 16.12c-6.053-24.696-9.882-51.776-10.938-80.12zm-216.324-193.235c-6.358 11.922-12 24.805-16.887 38.468-12.452-5.815-24.53-12.547-36.155-20.185 20.503-20.34 44.907-36.747 71.977-47.997-6.737 8.803-13.073 18.722-18.935 29.714zm-16.886 316.008c4.886 13.661 10.528 26.542 16.885 38.462 5.863 10.992 12.198 20.911 18.935 29.713-27.067-11.25-51.469-27.655-71.971-47.992 11.625-7.637 23.701-14.368 36.151-20.183zm29.853-11.938c29.213-9.794 60.04-14.835 91.66-14.835s62.447 5.041 91.66 14.835c-20.463 58.251-54.272 97.165-91.66 97.165s-71.197-38.914-91.66-97.165zm196.287 50.4c6.357-11.92 11.999-24.801 16.885-38.462 12.451 5.815 24.527 12.547 36.151 20.183-20.502 20.337-44.904 36.743-71.971 47.992 6.737-8.802 13.073-18.721 18.935-29.713zm39.093-193.235c-1.088-32.18-5.445-63.249-12.783-91.864 16.618-7.475 32.645-16.428 47.954-26.79 25.287 33.511 41.386 74.319 44.53 118.654z" />
                             </svg>
@@ -332,7 +344,7 @@
                     <div class="option-header">
                         <span class="option-icon">
                             <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
+                                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path
                                     d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
                                     fill="#4f46e5" />
@@ -384,7 +396,8 @@
     <div id="publish-success-modal" class="modal-overlay">
         <div class="modal-content success-content">
             <div class="success-icon">
-                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true">
                     <circle cx="32" cy="32" r="30" stroke="#10B981" stroke-width="4" />
                     <path d="M20 32L28 40L44 24" stroke="#10B981" stroke-width="4" stroke-linecap="round"
                         stroke-linejoin="round" />

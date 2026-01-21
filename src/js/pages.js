@@ -61,8 +61,9 @@ export function renderPageList() {
         // Delete Button
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-page-btn';
-        deleteBtn.innerHTML = '<span class="icon icon-delete"></span>';
+        deleteBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
         deleteBtn.title = 'Delete Page';
+        deleteBtn.setAttribute('aria-label', `Delete page ${index + 1}`);
         deleteBtn.onclick = async (e) => {
             e.stopPropagation();
             if (state.pages.length > 1) {
@@ -81,8 +82,9 @@ export function renderPageList() {
         // Duplicate Button
         const duplicateBtn = document.createElement('button');
         duplicateBtn.className = 'duplicate-page-btn';
-        duplicateBtn.innerHTML = '<span class="icon icon-duplicate"></span>';
+        duplicateBtn.innerHTML = '<span class="icon icon-duplicate" aria-hidden="true"></span>';
         duplicateBtn.title = 'Duplicate Page';
+        duplicateBtn.setAttribute('aria-label', `Duplicate page ${index + 1}`);
         duplicateBtn.onclick = (e) => {
             e.stopPropagation();
             saveState();
@@ -224,15 +226,15 @@ function renderMiniLayout(container, node) {
             domNode.style.backgroundColor = '#fff';
             if (node.image) {
                 domNode.style.backgroundColor = '#e0e7ff'; // Indicate image presence
-                domNode.innerHTML = '🖼️';
-                domNode.style.fontSize = '8px';
+                domNode.innerHTML = '<span aria-hidden="true">🖼️</span>';
+                domNode.style.fontSize = '11px';
                 domNode.style.display = 'flex';
                 domNode.style.justifyContent = 'center';
                 domNode.style.alignItems = 'center';
             } else if (node.text !== null && node.text !== undefined) {
                 domNode.style.backgroundColor = '#fef3c7'; // Indicate text presence (amber-100)
-                domNode.innerHTML = '📝';
-                domNode.style.fontSize = '8px';
+                domNode.innerHTML = '<span aria-hidden="true">📝</span>';
+                domNode.style.fontSize = '11px';
                 domNode.style.display = 'flex';
                 domNode.style.justifyContent = 'center';
                 domNode.style.alignItems = 'center';

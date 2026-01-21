@@ -83,7 +83,8 @@ function renderLeafNode(container, node) {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-image-btn';
             removeBtn.title = 'Remove image';
-            removeBtn.innerHTML = '<span class="icon icon-delete"></span>';
+            removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
+            removeBtn.setAttribute('aria-label', 'Remove image');
             removeBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -334,10 +335,11 @@ function renderTextContent(container, node, startInEditMode = false) {
     alignBtn.className = 'align-text-btn';
     alignBtn.title = isCentered ? 'Align Left' : 'Align Center';
 
-    const leftIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M2 9.5C2 8.94772 2.44772 8.5 3 8.5H15C15.5523 8.5 16 8.94772 16 9.5V10C16 10.5523 15.5523 11 15 11H3C2.44772 11 2 10.5523 2 10V9.5Z" fill="currentColor"/><path d="M3 17.5C2.44772 17.5 2 17.9477 2 18.5V19C2 19.5523 2.44772 20 3 20H15C15.5523 20 16 19.5523 16 19V18.5C16 17.9477 15.5523 17.5 15 17.5H3Z" fill="currentColor"/></svg>`;
-    const centerIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M5 9.5C5 8.94772 5.44772 8.5 6 8.5H18C18.5523 8.5 19 8.94772 19 9.5V10C19 10.5523 18.5523 11 18 11H6C5.44772 11 5 10.5523 5 10V9.5Z" fill="currentColor"/><path d="M6 17.5C5.44772 17.5 5 17.9477 5 18.5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V18.5C19 17.9477 18.5523 17.5 18 17.5H6Z" fill="currentColor"/></svg>`;
+    const leftIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M2 9.5C2 8.94772 2.44772 8.5 3 8.5H15C15.5523 8.5 16 8.94772 16 9.5V10C16 10.5523 15.5523 11 15 11H3C2.44772 11 2 10.5523 2 10V9.5Z" fill="currentColor"/><path d="M3 17.5C2.44772 17.5 2 17.9477 2 18.5V19C2 19.5523 2.44772 20 3 20H15C15.5523 20 16 19.5523 16 19V18.5C16 17.9477 15.5523 17.5 15 17.5H3Z" fill="currentColor"/></svg>`;
+    const centerIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M5 9.5C5 8.94772 5.44772 8.5 6 8.5H18C18.5523 8.5 19 8.94772 19 9.5V10C19 10.5523 18.5523 11 18 11H6C5.44772 11 5 10.5523 5 10V9.5Z" fill="currentColor"/><path d="M6 17.5C5.44772 17.5 5 17.9477 5 18.5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V18.5C19 17.9477 18.5523 17.5 18 17.5H6Z" fill="currentColor"/></svg>`;
 
     alignBtn.innerHTML = isCentered ? leftIcon : centerIcon;
+    alignBtn.setAttribute('aria-label', isCentered ? 'Align Left' : 'Align Center');
 
     alignBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -349,7 +351,8 @@ function renderTextContent(container, node, startInEditMode = false) {
     removeBtn.id = `remove-text-btn-${node.id}`;
     removeBtn.className = 'remove-text-btn';
     removeBtn.title = 'Remove text';
-    removeBtn.innerHTML = '<span class="icon icon-delete"></span>';
+    removeBtn.setAttribute('aria-label', 'Remove text');
+    removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
     removeBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
