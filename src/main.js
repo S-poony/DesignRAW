@@ -245,8 +245,9 @@ async function loadShortcuts() {
     if (!container) return;
 
     try {
-        const response = await fetch('/assets/shortcuts.md');
-        if (!response.ok) throw new Error('Failed to load shortcuts');
+        // Use relative path to support hosting in subdirectories (e.g. GitHub Pages)
+        const response = await fetch('assets/shortcuts.md');
+        if (!response.ok) throw new Error(`Failed to load shortcuts: ${response.status} ${response.statusText}`);
         const text = await response.text();
 
         // Use marked for true markdown support with GFM line breaks enabled

@@ -97,9 +97,15 @@ export function setupExportHandlers() {
 
 async function performExport(format, qualityMultiplier) {
     const loadingOverlay = document.getElementById('export-loading');
+    const loadingStatus = document.getElementById('loading-status');
     const progressText = document.getElementById('loading-progress');
 
-    if (loadingOverlay) loadingOverlay.classList.add('active');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('active');
+        // Dynamic status text based on format
+        const formatText = format.toUpperCase();
+        loadingStatus.textContent = `Generating ${formatText === 'JPEG' ? 'JPG' : formatText}...`;
+    }
 
     const tempContainer = document.createElement('div');
     // ... existing style setup ...
