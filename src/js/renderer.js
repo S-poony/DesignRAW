@@ -113,13 +113,18 @@ function renderLeafNode(container, node) {
 
         const prompt = document.createElement('div');
         prompt.className = 'text-prompt';
-        prompt.textContent = 'Click here to write';
+        prompt.textContent = 'Click to split / Type to write';
         container.appendChild(prompt);
 
-        // Handle click on prompt to start editing
-        prompt.addEventListener('click', (e) => {
-            e.stopPropagation();
-            createTextInRect(node.id);
+        // Allow click to bubble to parent for splitting (handled in main.js -> handleSplitClick)
+        // We only intercept keys to start writing
+        container.addEventListener('keydown', (e) => {
+            // Ignore modifiers, navigation keys, etc. if they are not printing characters
+            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                createTextInRect(node.id, e.key);
+                e.preventDefault();
+                e.stopPropagation();
+            }
         });
     }
 

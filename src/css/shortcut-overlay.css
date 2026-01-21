@@ -26,6 +26,12 @@
     transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+@media (max-width: 768px) {
+    #shortcut-overlay {
+        display: none !important;
+    }
+}
+
 #shortcut-overlay.visible {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -37,10 +43,10 @@
     gap: 6px;
     padding: 4px 8px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.95);
     font-family: 'Inter', sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -52,10 +58,10 @@
 }
 
 .shortcut-key {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 4px;
-    padding: 2px 4px;
-    min-width: 16px;
+    padding: 2px 6px;
+    min-width: 20px;
     text-align: center;
     font-size: 11px;
     font-weight: 600;

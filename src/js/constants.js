@@ -24,26 +24,35 @@ export const DIVIDER_SIZE = 5;
  * used to generate UI hints and (optionally) validate actions 
  */
 export const SHORTCUTS = [
-    // --- Global / Navigation ---
+    // --- Complex / Specific ---
     {
-        keys: ['Arrows'],
-        label: 'Navigate',
-        group: 'Navigation',
-        condition: () => true
+        keys: ['Ctrl', 'Shift', 'Alt', 'Click'],
+        label: 'Long Split (Btm/Right)',
+        group: 'Structure',
+        // Only makes sense if there is content to move to 'B'
+        condition: (node) => node.image || (node.text !== null && node.text !== undefined)
     },
 
-    // --- Empty Rectangle ---
+    // --- Image Specific ---
     {
         keys: ['Click'],
-        label: 'Write',
+        label: 'Toggle Fit',
         group: 'Content',
-        condition: (node) => !node.image && (node.text === null || node.text === undefined)
+        condition: (node) => !!node.image
+    },
+
+    // --- Text Specific ---
+    {
+        keys: ['Click'],
+        label: 'Edit',
+        group: 'Content',
+        condition: (node) => node.text !== null && node.text !== undefined
     },
     {
-        keys: ['Space'],
-        label: 'Split',
-        group: 'Structure',
-        condition: (node) => !node.image && (node.text === null || node.text === undefined)
+        keys: ['Ctrl', 'K'],
+        label: 'Link',
+        group: 'Content',
+        condition: (node) => node.text !== null && node.text !== undefined
     },
 
     // --- Content Presence (Image or Text) ---
@@ -75,34 +84,25 @@ export const SHORTCUTS = [
         condition: () => true
     },
 
-    // --- Complex / Specific ---
+    // --- Empty Rectangle ---
     {
-        keys: ['Ctrl', 'Shift', 'Alt', 'Click'],
-        label: 'Long Split (Btm/Right)',
+        keys: ['Any'],
+        label: 'Write',
+        group: 'Content',
+        condition: (node) => !node.image && (node.text === null || node.text === undefined)
+    },
+    {
+        keys: ['Click'], // Implicitly split via bubble up
+        label: 'Split',
         group: 'Structure',
-        // Only makes sense if there is content to move to 'B'
-        condition: (node) => node.image || (node.text !== null && node.text !== undefined)
+        condition: (node) => !node.image && (node.text === null || node.text === undefined)
     },
 
-    // --- Image Specific ---
+    // --- Global / Navigation ---
     {
-        keys: ['Click'],
-        label: 'Toggle Fit',
-        group: 'Content',
-        condition: (node) => !!node.image
-    },
-
-    // --- Text Specific ---
-    {
-        keys: ['Click'],
-        label: 'Edit',
-        group: 'Content',
-        condition: (node) => node.text !== null && node.text !== undefined
-    },
-    {
-        keys: ['Ctrl', 'K'],
-        label: 'Link',
-        group: 'Content',
-        condition: (node) => node.text !== null && node.text !== undefined
+        keys: ['Arrows'],
+        label: 'Navigate',
+        group: 'Navigation',
+        condition: () => true
     }
 ];
