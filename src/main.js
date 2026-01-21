@@ -149,8 +149,8 @@ function initialize() {
             const rect = elUnderCursor.closest('.splittable-rect[data-split-state="unsplit"]');
             if (!rect) return;
 
-            // Only focus if rect changed (efficiency)
-            if (rect.id !== lastHoveredRectId) {
+            // Focus if rect changed OR if the rect lost focus but we're still hovering over it
+            if (rect.id !== lastHoveredRectId || document.activeElement !== rect) {
                 rect.focus({ preventScroll: true });
                 lastHoveredRectId = rect.id;
             }
