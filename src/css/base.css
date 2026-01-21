@@ -196,6 +196,7 @@ hr {
         order: -3;
         /* Above the title on mobile */
         justify-content: center;
+        gap: 0.5rem;
         padding: 0.5rem 0;
     }
 }

@@ -5,8 +5,10 @@ import { setupExportHandlers } from './js/export.js';
 import { state, getCurrentPage } from './js/state.js';
 import { renderLayout } from './js/renderer.js';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import { DIVIDER_SIZE } from './js/constants.js';
 import { setupSettingsHandlers } from './js/settings.js';
+import { setupGlobalErrorHandler } from './js/errorHandler.js';
 
 import { setupPageHandlers } from './js/pages.js';
 import { setupFileIOHandlers } from './js/fileIO.js';
@@ -91,6 +93,7 @@ function setupGlobalHandlers() {
 }
 
 function initialize() {
+    setupGlobalErrorHandler();
     setupAssetHandlers();
     setupDropHandlers();
     setupExportHandlers();
@@ -109,12 +112,13 @@ async function loadShortcuts() {
     if (!container) return;
 
     try {
-        const response = await fetch('assets/shortcuts.md');
+        const response = await fetch('/assets/shortcuts.md');
         if (!response.ok) throw new Error('Failed to load shortcuts');
         const text = await response.text();
 
         // Use marked for true markdown support with GFM line breaks enabled
-        const html = marked.parse(text, { breaks: true });
+        // Sanitize output to prevent XSS from malicious content
+        const html = DOMPurify.sanitize(marked.parse(text, { breaks: true }));
 
         container.className = 'shortcuts-content';
         container.innerHTML = html;

@@ -169,9 +169,20 @@ export function showPublishSuccess(url) {
             resolve();
         };
 
-        const onCopy = () => {
-            urlInput.select();
-            document.execCommand('copy');
+        const onCopy = async () => {
+            try {
+                // Modern Clipboard API (requires HTTPS or localhost)
+                await navigator.clipboard.writeText(url);
+            } catch {
+                // Fallback for older browsers or non-secure contexts
+                urlInput.select();
+                try {
+                    document.execCommand('copy');
+                } catch {
+                    // Even fallback failed, but we'll still show success visually
+                }
+            }
+
             const originalText = copyBtn.innerHTML;
             copyBtn.innerHTML = 'Copied!';
             copyBtn.classList.remove('btn-primary');

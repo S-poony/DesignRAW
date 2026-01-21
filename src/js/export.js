@@ -6,6 +6,7 @@ import { A4_PAPER_ID } from './constants.js';
 import { state } from './state.js';
 import { renderLayout } from './renderer.js';
 import { showAlert, showPublishSuccess } from './utils.js';
+import { toast } from './errorHandler.js';
 
 const BASE_A4_WIDTH = 794;
 const BASE_A4_HEIGHT = 1123;
@@ -296,19 +297,40 @@ async function performPublishFlipbook(qualityMultiplier) {
 
         const bookmarks = extractBookmarksForApi(state.pages);
 
-        const response = await fetch(FLIPBOOK_API_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title: document.querySelector('h1')?.textContent || 'My Flipbook',
-                pages: apiPages,
-                bookmarks: bookmarks
-            })
-        });
+        // Add timeout for network request (30 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        let response;
+        try {
+            response = await fetch(FLIPBOOK_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: document.querySelector('h1')?.textContent || 'My Flipbook',
+                    pages: apiPages,
+                    bookmarks: bookmarks
+                }),
+                signal: controller.signal
+            });
+        } catch (fetchError) {
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Request timed out. Please check your connection and try again.');
+            }
+            throw new Error('Network error. Please check your internet connection.');
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to publish flipbook');
+            let errorMessage = 'Failed to publish flipbook';
+            try {
+                const error = await response.json();
+                errorMessage = error.error || errorMessage;
+            } catch {
+                // Response wasn't JSON
+            }
+            throw new Error(errorMessage);
         }
 
         const result = await response.json();
