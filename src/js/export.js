@@ -226,7 +226,9 @@ async function performPublishFlipbook(qualityMultiplier) {
         loadingStatus.textContent = 'Publishing Flipbook...';
     }
 
+    // STRICT ALIGNMENT WITH performExport
     const tempContainer = document.createElement('div');
+    // Basic resets
     tempContainer.style.position = 'fixed';
     tempContainer.style.top = '0';
     tempContainer.style.left = '0';
@@ -234,7 +236,15 @@ async function performPublishFlipbook(qualityMultiplier) {
     tempContainer.style.width = `${BASE_A4_WIDTH}px`;
     tempContainer.style.height = `${BASE_A4_HEIGHT}px`;
     tempContainer.style.backgroundColor = '#ffffff';
+    // CRITICAL: Copy styles from performExport that affect layout/wrapping
+    tempContainer.style.boxSizing = 'border-box';
+    tempContainer.style.margin = '0';
+    tempContainer.style.padding = '0';
+    tempContainer.style.border = 'none';
+    tempContainer.style.boxShadow = 'none';
 
+    // CRITICAL: Add the class that might provide CSS resets
+    tempContainer.className = 'export-container';
     document.body.appendChild(tempContainer);
 
     const apiPages = [];
@@ -254,6 +264,8 @@ async function performPublishFlipbook(qualityMultiplier) {
             paperWrapper.style.boxShadow = 'none';
             paperWrapper.style.border = 'none';
             paperWrapper.style.margin = '0';
+            // CRITICAL: Layout consistency
+            paperWrapper.style.zoom = '1';
             tempContainer.appendChild(paperWrapper);
 
             renderLayout(paperWrapper, pageLayout);
@@ -263,11 +275,17 @@ async function performPublishFlipbook(qualityMultiplier) {
             // Remove UI elements
             paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt, .align-text-btn, .text-editor, .edge-handle').forEach(el => el.remove());
 
+            // Reverted Link Logic: Standard extraction without hiding elements
+            // The text fix is strictly relying on DOM container alignment now.
+
             const canvas = await html2canvas(tempContainer, {
                 scale: qualityMultiplier,
                 useCORS: true,
                 width: BASE_A4_WIDTH,
-                height: BASE_A4_HEIGHT
+                height: BASE_A4_HEIGHT,
+                windowWidth: BASE_A4_WIDTH,
+                windowHeight: BASE_A4_HEIGHT,
+                backgroundColor: '#ffffff'
             });
 
             const imageData = canvas.toDataURL('image/jpeg', 0.9);
@@ -340,6 +358,7 @@ async function performPublishFlipbook(qualityMultiplier) {
         }
     }
 }
+
 
 function extractLinksForApi(container) {
     const links = [];
