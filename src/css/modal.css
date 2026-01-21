@@ -322,3 +322,8 @@
     border-radius: 0.25rem;
     border: 1px solid #d1d5db;
 }
+
+/* Export Loading Specifics */
+#export-loading.modal-overlay {
+    background-color: #ffffff;
+}
