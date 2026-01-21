@@ -148,15 +148,28 @@ export function handleSplitClick(event) {
 
     // When splitting, the original rect (rectElement.id) is now a container (hidden/replaced).
     // The visual equivalent of "staying selected" is presumably focusing the first child (or the one preserving content).
-    // Using childA as default new focus.
+    // If it's a mouse click (has coordinates), we focus whatever is under the mouse after split.
+    // If it's a keyboard split (Spacebar), we default to childA.
 
-    // We can't use renderAndRestoreFocus here because rectElement.id is gone/hidden.
-    // We manually handle it.
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
 
-    // Try to focus childA
-    const newFocus = document.getElementById(childA.id);
-    if (newFocus) newFocus.focus({ preventScroll: true });
+    const isMouseClick = event.clientX > 0 || event.clientY > 0;
+    let focused = false;
+
+    if (isMouseClick) {
+        const elUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
+        const newRect = elUnderMouse ? elUnderMouse.closest('.splittable-rect[data-split-state="unsplit"]') : null;
+        if (newRect) {
+            newRect.focus({ preventScroll: true });
+            focused = true;
+        }
+    }
+
+    if (!focused) {
+        // Fallback for keyboard or if elementFromPoint failed
+        const newFocus = document.getElementById(childA.id);
+        if (newFocus) newFocus.focus({ preventScroll: true });
+    }
 
     document.dispatchEvent(new CustomEvent('layoutUpdated'));
 }
