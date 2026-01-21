@@ -1,6 +1,6 @@
 import { DIVIDER_SIZE, A4_PAPER_ID } from './constants.js';
 import { getCurrentPage } from './state.js';
-import { renderLayout, renderCoverImage } from './renderer.js';
+// import { renderCoverImage } from './renderer.js'; // REMOVED to break circular dependency
 
 /**
  * Default settings configuration
@@ -49,12 +49,8 @@ export function updateSetting(category, key, value) {
         applySettings();
 
         // If we toggled page numbers, we need a full render because it's a DOM change
-        if (category === 'paper' && key === 'showPageNumbers') {
-            const paper = document.getElementById(A4_PAPER_ID);
-            if (paper) {
-                renderLayout(paper, getCurrentPage());
-            }
-        }
+        // This is now handled by the event listener in main.js to avoid circular dependency
+
 
         document.dispatchEvent(new CustomEvent('settingsUpdated'));
     }
@@ -83,12 +79,9 @@ export function applySettings() {
     root.style.setProperty('--cover-image-opacity', settings.paper.coverImageOpacity);
 
     // Cover image
-    const paper = document.getElementById('a4-paper');
-    if (paper) {
-        paper.style.backgroundColor = settings.paper.backgroundColor;
-
-        renderCoverImage(paper);
-    }
+    // NOTE: Direct manipulation removed to break circular dependency.
+    // Background color is handled by CSS variable updates above.
+    // Cover image creation is handled by re-rendering via 'settingsUpdated' event using CSS var for opacity.
     // Divider settings
     root.style.setProperty('--divider-size', `${settings.dividers.width}px`);
     root.style.setProperty('--divider-color', settings.dividers.color);

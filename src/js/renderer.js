@@ -21,7 +21,8 @@ export function renderLayout(container, node) {
     if (container.id === A4_PAPER_ID || container.classList.contains('a4-paper')) {
         const settings = getSettings();
         container.innerHTML = '';
-        container.style.backgroundColor = settings.paper.backgroundColor;
+        // Use CSS variable for background color to allow real-time updates
+        container.style.backgroundColor = 'var(--paper-bg-color, #ffffff)';
 
         const rootElement = createDOMRect(node, null);
         container.appendChild(rootElement);
@@ -514,7 +515,8 @@ export function renderCoverImage(container) {
     cover.style.backgroundImage = `url(${settings.paper.coverImage})`;
     cover.style.backgroundSize = 'cover';
     cover.style.backgroundPosition = 'center';
-    cover.style.opacity = settings.paper.coverImageOpacity;
+    // Use CSS variable for real-time updates without re-render
+    cover.style.opacity = 'var(--cover-image-opacity, 0.2)';
     cover.style.pointerEvents = 'none';
     cover.style.zIndex = '1'; // Below rects (z-index 2) but above paper background
 

@@ -105,6 +105,7 @@ function initialize() {
     setupExportHandlers();
     setupGlobalHandlers();
     setupSettingsHandlers();
+    setupFileIOHandlers();
     loadShortcuts();
     setupPageHandlers();
     setupKeyboardNavigation();
@@ -128,6 +129,19 @@ function initialize() {
         lastHoveredRectId = null;
     });
     document.addEventListener('stateRestored', updateFocusableRects);
+
+    // Handle settings updates that require re-render (breaking circular dependency)
+    document.addEventListener('settingsUpdated', () => {
+        // We only really need to re-render if page numbers toggled, but a check is cheap
+        // For simplicity, we can just re-render or check the specific setting if we passed it in the event
+        // But settingsUpdated event currently doesn't carry detail.
+        // Let's just re-render if we suspect a change needed only for DOM-affecting settings.
+        // Actually, let's keep it simple: just re-render. It's safe.
+        const paper = document.getElementById('a4-paper');
+        if (paper) {
+            renderLayout(paper, getCurrentPage());
+        }
+    });
 
     // Global click delegation for rectangles in the paper
     const paper = document.getElementById('a4-paper');

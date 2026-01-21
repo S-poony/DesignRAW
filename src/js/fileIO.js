@@ -72,6 +72,12 @@ export async function openLayout() {
                 state.currentPageIndex = data.currentPageIndex || 0;
                 updateCurrentId(data.currentId || 1);
 
+                // Restore settings if present - MUST be done before rendering
+                // Fix: Reordered to ensure settings are applied before renderLayout
+                if (data.settings) {
+                    loadSettings(data.settings);
+                }
+
                 // Re-render UI
                 const paper = document.getElementById(A4_PAPER_ID);
                 if (paper) {
@@ -81,11 +87,6 @@ export async function openLayout() {
 
                 // Notify other components if necessary
                 document.dispatchEvent(new CustomEvent('layoutUpdated'));
-
-                // Restore settings if present
-                if (data.settings) {
-                    loadSettings(data.settings);
-                }
 
             } catch (err) {
                 console.error('Failed to open layout:', err);
