@@ -8,11 +8,6 @@ export function renderAndRestoreFocus(page, explicitFocusId = null) {
     // If explicit ID provided, use it. Otherwise try to preserve current active element.
     const focusedId = explicitFocusId || (document.activeElement ? document.activeElement.id : null);
 
-    // Capture mouse position if we can (we need to track it globally if we want this perfect, 
-    // but we can try to rely on the last known interaction if available, or just check :hover if supported)
-    // Actually, asking the browser 'what is under the mouse' requires coordinates.
-    // We'll rely on our state if we have it, or just let 'explicitFocusId' win if provided.
-
     renderLayout(document.getElementById(A4_PAPER_ID), page);
 
     let focusRestored = false;
@@ -286,23 +281,25 @@ export function startEdgeDrag(event, edge) {
 
     // Create the new split node that will wrap the current layout
     const newRoot = {
-        id: `rect-${++state.currentId}`, // This ID will be updated by renderer to paper ID anyway but good for consistency
+        id: `rect-${++state.currentId}`,
         splitState: 'split',
         orientation: orientation,
         children: []
     };
 
+    // Start with minimum 5% size to prevent accidental tiny splits on mobile
+    const MIN_EDGE_SIZE = 2;
     const newRect = {
         id: `rect-${++state.currentId}`,
         splitState: 'unsplit',
         image: null,
         text: null,
-        size: '0%' // Start with 0 size
+        size: `${MIN_EDGE_SIZE}%`
     };
 
-    // Old layout wrapped
+    // Old layout wrapped - gets remaining space
     const oldLayoutNode = { ...oldLayout };
-    oldLayoutNode.size = '100%';
+    oldLayoutNode.size = `${100 - MIN_EDGE_SIZE}%`;
 
     if (edge === 'left' || edge === 'top') {
         newRoot.children = [newRect, oldLayoutNode];
@@ -383,9 +380,11 @@ function stopDrag() {
     document.body.classList.remove('no-select');
     state.activeDivider = null;
 
-    if (pA <= 0) {
+    // Delete rectangles that have very small or negative area
+    const MIN_AREA_PERCENT = 1;
+    if (pA <= MIN_AREA_PERCENT) {
         deleteRectangle(rectA);
-    } else if (pB <= 0) {
+    } else if (pB <= MIN_AREA_PERCENT) {
         deleteRectangle(rectB);
     }
 }
