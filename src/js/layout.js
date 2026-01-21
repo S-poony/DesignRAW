@@ -3,6 +3,22 @@ import { state, getCurrentPage } from './state.js';
 import { saveState } from './history.js';
 import { renderLayout } from './renderer.js';
 
+// Helper to restore focus after render
+function renderAndRestoreFocus(page, explicitFocusId = null) {
+    // If explicit ID provided, use it. Otherwise try to preserve current active element.
+    const focusedId = explicitFocusId || (document.activeElement ? document.activeElement.id : null);
+    renderLayout(document.getElementById(A4_PAPER_ID), page);
+
+    // Try to restore focus
+    if (focusedId) {
+        const el = document.getElementById(focusedId);
+        if (el) {
+            el.focus({ preventScroll: true });
+        }
+    }
+    document.dispatchEvent(new CustomEvent('layoutUpdated'));
+}
+
 // Helper to find node in the layout tree
 export function findNodeById(root, id) {
     if (root.id === id) return root;
@@ -51,8 +67,8 @@ export function handleSplitClick(event) {
         if (node.image || node.text !== null) {
             node.image = null;
             node.text = null;
-            renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-            document.dispatchEvent(new CustomEvent('layoutUpdated'));
+            // Explicitly restore focus to this rect after clearing content
+            renderAndRestoreFocus(getCurrentPage(), rectElement.id);
         } else {
             deleteRectangle(rectElement);
         }
@@ -63,8 +79,8 @@ export function handleSplitClick(event) {
     if (node.image && !event.shiftKey) {
         saveState();
         node.image.fit = node.image.fit === 'cover' ? 'contain' : 'cover';
-        renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-        document.dispatchEvent(new CustomEvent('layoutUpdated'));
+        // Explicitly restore focus to this rect
+        renderAndRestoreFocus(getCurrentPage(), rectElement.id);
         return;
     }
 
@@ -106,7 +122,18 @@ export function handleSplitClick(event) {
         node.textAlign = null;
     }
 
+    // When splitting, the original rect (rectElement.id) is now a container (hidden/replaced).
+    // The visual equivalent of "staying selected" is presumably focusing the first child (or the one preserving content).
+    // Using childA as default new focus.
+
+    // We can't use renderAndRestoreFocus here because rectElement.id is gone/hidden.
+    // We manually handle it.
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+
+    // Try to focus childA
+    const newFocus = document.getElementById(childA.id);
+    if (newFocus) newFocus.focus({ preventScroll: true });
+
     document.dispatchEvent(new CustomEvent('layoutUpdated'));
 }
 

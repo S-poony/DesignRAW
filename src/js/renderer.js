@@ -62,6 +62,18 @@ function renderSplitNode(container, node) {
 
 function renderLeafNode(container, node) {
     container.setAttribute('data-split-state', 'unsplit');
+    // Make leaf key-accessible
+    container.setAttribute('tabindex', '0');
+    container.setAttribute('role', 'button'); // It acts like a button (split action)
+
+    // Hover-to-select behavior (Request: whatever leaf node is hovered be selected)
+    container.addEventListener('mouseenter', (e) => {
+        // Only auto-focus if we are not currently dragging something
+        // and if it's not the already focused element to avoid event spam
+        if (!document.querySelector('.divider.dragging') && document.activeElement !== container) {
+            container.focus({ preventScroll: true });
+        }
+    });
 
     if (node.image) {
         const asset = assetManager.getAsset(node.image.assetId);
