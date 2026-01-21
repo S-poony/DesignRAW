@@ -36,10 +36,30 @@ function handleKeyDown(e) {
             break;
 
         case 'Enter':
-        case ' ':
             if (isRect) {
                 e.preventDefault();
-                focused.click();
+                // Pass null to keep existing text, or init empty if new
+                createTextInRect(focused.id, null);
+            }
+            break;
+
+        case ' ': // Spacebar
+            if (isRect) {
+                e.preventDefault();
+
+                // Mimic click behaviors based on modifiers
+                // Shift + Space: Split logic (handled by creating a synthetic click event)
+                // We'll dispatch a click with the same modifiers
+
+                const clickEvent = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    shiftKey: e.shiftKey,
+                    ctrlKey: e.ctrlKey,
+                    altKey: e.altKey,
+                    metaKey: e.metaKey
+                });
+                focused.dispatchEvent(clickEvent);
             }
             break;
 
@@ -54,15 +74,6 @@ function handleKeyDown(e) {
         default:
             // Type to edit: if a single printable character (length 1) is pressed while focused on a rect
             if (isRect && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                // Don't prevent default, we want to capture the key potentially
-                // But createTextInRect needs to handle checking if it's empty
-                // We'll call it, and if successful, the renderer should focus the textarea
-                // Depending on implementation, we might want to manually insert the char,
-                // but let's see if we can just trigger the mode first.
-                // Actually, to make it feel natural, passing the key to init would be good,
-                // but existing createTextInRect just initializes empty.
-                // Let's rely on the user typing the first char again or implementing "start with char" later if needed.
-                // For now, just trigger edit mode.
                 e.preventDefault();
                 createTextInRect(focused.id, e.key);
             }

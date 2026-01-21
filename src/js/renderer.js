@@ -276,45 +276,52 @@ function renderTextContent(container, node, startInEditMode = false) {
             }
         }
 
-        // Exit on Escape
+        // Escape to exit edit mode
         if (e.key === 'Escape') {
-            editor.blur();
+            e.preventDefault();
+            editor.blur(); // Blur triggers the blur handler which resets UI
+            return;
         }
 
-        // Ctrl+K for links
+        // Ctrl + K for Link (with selection)
         if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
-            const linkText = selection || '';
-            const linkUrl = 'https://';
-            const before = value.substring(0, start);
-            const after = value.substring(end);
-
-            editor.value = before + `[${linkText}](${linkUrl})` + after;
-
+            const selection = editor.value.substring(start, end);
             if (selection) {
-                // If text was selected, highlight the URL part
-                editor.selectionStart = start + linkText.length + 3; // [ + linkText + ] + (
-                editor.selectionEnd = editor.selectionStart + linkUrl.length;
+                const linkText = `[${selection}](url)`;
+                editor.setRangeText(linkText, start, end, 'select');
+                // Select "url" part
+                editor.selectionStart = start + selection.length + 3;
+                editor.selectionEnd = editor.selectionStart + 3;
             } else {
-                // If no selection, place cursor inside brackets
-                editor.selectionStart = editor.selectionEnd = start + 1;
+                const linkText = `[link text](url)`;
+                editor.setRangeText(linkText, start, end, 'select');
             }
             editor.dispatchEvent(new Event('input'));
         }
     });
 
-    // Exit edit mode on blur (click away)
+    // Handle blur: save state, exit edit mode
     editor.addEventListener('blur', () => {
+
+        // Prevent immediate re-entry if blur caused by a click that might be a split
+        window._justFinishedEditing = true;
+        setTimeout(() => { window._justFinishedEditing = false; }, 100);
+
         container.classList.remove('is-editing');
         editor.classList.add('hidden');
-        preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
         preview.classList.remove('hidden');
 
-        // Prevent accidental splitting when clicking away from an active editor
-        window._justFinishedEditing = true;
-        setTimeout(() => {
-            window._justFinishedEditing = false;
-        }, 200);
+        // Trigger save state
+        saveState();
+
+        // Restore focus to the container div itself so we can keep keyboard navigating
+        // But we need to use the rect element, which is the container here?
+        // Actually `container` is the .rect-content div, the keyboard nav works on .splittable-rect (the parent)
+        const parentRect = container.closest('.splittable-rect');
+        if (parentRect) {
+            parentRect.focus();
+        }
     });
 
     // Alignment toggle button

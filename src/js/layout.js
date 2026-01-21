@@ -110,12 +110,20 @@ export function handleSplitClick(event) {
     document.dispatchEvent(new CustomEvent('layoutUpdated'));
 }
 
-export function createTextInRect(rectId, initialText = '') {
+export function createTextInRect(rectId, initialText = null) {
     const node = findNodeById(getCurrentPage(), rectId);
-    if (!node || node.splitState === 'split' || node.image || node.text !== null) return;
+    if (!node || node.splitState === 'split' || node.image) return;
 
     saveState();
-    node.text = initialText;
+
+    // If initialText is provided (string), overwrite key
+    // If initialText is null/undefined, keep existing text (enter edit mode) or init empty
+    if (initialText !== null) {
+        node.text = initialText;
+    } else if (node.text === null || node.text === undefined) {
+        node.text = '';
+    }
+    // If node.text already existed and initialText is null, we just leave it alone to edit it.
     // Mark that we want edit mode
     node._startInEditMode = true;
     renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
