@@ -505,26 +505,3 @@
     justify-content: space-between;
     margin-top: 1.5rem;
 }
-
-/* Confirmation checkbox */
-.confirm-checkbox-container {
-    margin: 1rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.confirm-checkbox-container label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.confirm-checkbox-container input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
