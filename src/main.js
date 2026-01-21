@@ -110,6 +110,11 @@ function initialize() {
 
     document.addEventListener('mousemove', (e) => {
         try {
+            // Don't steal focus if user is currently typing in a textarea or input
+            if (document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) {
+                return;
+            }
+
             const elUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
             if (!elUnderCursor) return;
 
