@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { handleSplitClick, createTextInRect } from './layout.js';
 import { undo, redo } from './history.js';
-import { rebindEvents } from './layout.js';
+
 import { showConfirm } from './utils.js';
 
 /**
@@ -186,8 +186,8 @@ export function updateFocusableRects() {
 
         const hasContent = el.querySelector('img') || el.querySelector('.text-content');
         const label = hasContent
-            ? 'Content region. Press Delete to remove, Enter to edit options.'
-            : 'Empty region. Press Enter to split, Alt+Enter to split vertically.';
+            ? 'Content region. Click to split, Enter/Type to edit.'
+            : 'Empty region. Click to split, Enter/Type to write.';
 
         el.setAttribute('aria-label', label);
     });

@@ -1,5 +1,5 @@
 import { undo, redo } from './js/history.js';
-import { handleSplitClick, rebindEvents, createTextInRect } from './js/layout.js';
+import { handleSplitClick, createTextInRect } from './js/layout.js';
 import { setupAssetHandlers, setupDropHandlers } from './js/assets.js';
 import { setupExportHandlers } from './js/export.js';
 import { state, getCurrentPage } from './js/state.js';
@@ -38,7 +38,10 @@ function setupGlobalHandlers() {
                     if (isEmpty) {
                         // Empty editor: trigger global undo to remove the text node
                         e.preventDefault();
-                        undo(rebindEvents);
+                        undo(() => {
+                            renderLayout(document.getElementById('a4-paper'), getCurrentPage());
+                            document.dispatchEvent(new CustomEvent('layoutUpdated'));
+                        });
                     }
                     // Otherwise, let the native undo work
                 }
@@ -46,7 +49,10 @@ function setupGlobalHandlers() {
             } else {
                 // Not in a text input: trigger global undo
                 e.preventDefault();
-                undo(rebindEvents);
+                undo(() => {
+                    renderLayout(document.getElementById('a4-paper'), getCurrentPage());
+                    document.dispatchEvent(new CustomEvent('layoutUpdated'));
+                });
             }
         }
 
@@ -58,7 +64,10 @@ function setupGlobalHandlers() {
             // Only trigger global redo if NOT in a text input
             if (!isInput) {
                 e.preventDefault();
-                redo(rebindEvents);
+                redo(() => {
+                    renderLayout(document.getElementById('a4-paper'), getCurrentPage());
+                    document.dispatchEvent(new CustomEvent('layoutUpdated'));
+                });
             }
         }
 
@@ -85,6 +94,8 @@ function setupGlobalHandlers() {
 }
 
 function initialize() {
+    let lastHoveredRectId = null;
+
     // Setup global error handling
     setupGlobalErrorHandler();
     setupAssetHandlers();
@@ -97,21 +108,35 @@ function initialize() {
     setupKeyboardNavigation();
 
     // Listen for layout updates to manage focus
-    document.addEventListener('layoutUpdated', updateFocusableRects);
-    document.addEventListener('stateRestored', updateFocusableRects);
-
-    // Global hover-to-select: when mouse moves over a leaf rect in the paper, focus it
-    let lastHoveredRectId = null;
-
-    // Reset hover state after layout updates (DOM was re-rendered, elements are new)
+    // Listen for layout updates to manage focus and reset selection state
     document.addEventListener('layoutUpdated', () => {
+        updateFocusableRects();
         lastHoveredRectId = null;
     });
+    document.addEventListener('stateRestored', updateFocusableRects);
+
+    // Global click delegation for rectangles in the paper
+    const paper = document.getElementById('a4-paper');
+    if (paper) {
+        paper.addEventListener('click', (e) => {
+            const rect = e.target.closest('.splittable-rect[data-split-state="unsplit"]');
+            if (rect) {
+                // If the click was specifically on a sub-button like remove, let its own listener handle it
+                if (e.target.closest('button')) return;
+
+                // Call handleSplitClick which handles split logic and modifiers
+                handleSplitClick(e);
+            }
+        });
+    }
 
     document.addEventListener('mousemove', (e) => {
         try {
-            // Don't steal focus if user is currently typing in a textarea or input
-            if (document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) {
+            // Don't steal focus if user is currently typing
+            if (document.activeElement &&
+                (document.activeElement.tagName === 'TEXTAREA' ||
+                    document.activeElement.tagName === 'INPUT' ||
+                    document.activeElement.isContentEditable)) {
                 return;
             }
 

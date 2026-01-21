@@ -120,7 +120,7 @@ function renderLeafNode(container, node) {
         });
     }
 
-    container.addEventListener('click', handleSplitClick);
+
 }
 
 function renderTextContent(container, node, startInEditMode = false) {

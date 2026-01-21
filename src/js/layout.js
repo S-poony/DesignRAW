@@ -83,7 +83,7 @@ export function handleSplitClick(event) {
         return;
     }
 
-    const rectElement = event.currentTarget;
+    const rectElement = event.target.closest('.splittable-rect');
     const node = findNodeById(getCurrentPage(), rectElement.id);
     if (!node || node.splitState === 'split') return;
 
@@ -390,8 +390,3 @@ function stopDrag() {
     }
 }
 
-export function rebindEvents() {
-    // With state-first, rebindEvents just triggers a full render
-    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-    document.dispatchEvent(new CustomEvent('layoutUpdated'));
-}
