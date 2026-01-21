@@ -12,12 +12,15 @@
 `space` = split
 `Arrows` = navigation
 `ctrl + space` = delete rectangle
+`Alt + click` = long split
 
 ### Rectangle with content
 
 `ctrl + click` = delete content
 `shift + click` = split to Target A *(left or top)*
 `ctrl + shift + click` = split to Target B *(right or bottom)*
+`Alt + click` = long split
+`ctrl + shift + alt + click` = long split to target B
 
 ***
 
@@ -29,7 +32,7 @@
 
 ### Text
 
-`Any alphanumeric key` = edit text
+`Any alphanumeric key` = replace text
 `Enter` = edit text
 `Escape` = exit edit mode
 `ctrl + k` (with text selected) = insert hyperlink

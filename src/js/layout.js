@@ -99,8 +99,8 @@ export function handleSplitClick(event) {
         return;
     }
 
-    // Image logic: Toggle object-fit if clicking image without Shift
-    if (node.image && !event.shiftKey) {
+    // Image logic: Toggle object-fit if clicking image without Shift or Alt
+    if (node.image && !event.shiftKey && !event.altKey) {
         saveState();
         node.image.fit = node.image.fit === 'cover' ? 'contain' : 'cover';
         // Explicitly restore focus to this rect
@@ -108,8 +108,8 @@ export function handleSplitClick(event) {
         return;
     }
 
-    // Text logic: Don't split if clicking text without Shift (Shift required to split)
-    if ((node.text !== null && node.text !== undefined) && !event.shiftKey) {
+    // Text logic: Don't split if clicking text without Shift or Alt (one is required to split)
+    if ((node.text !== null && node.text !== undefined) && !event.shiftKey && !event.altKey) {
         // Do nothing - clicking text area should focus editor, not split
         return;
     }
