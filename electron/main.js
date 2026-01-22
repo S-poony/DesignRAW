@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell, dialog } from 'electron';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { autoUpdater } from 'electron-updater';
-import isDev from 'electron-is-dev';
+
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -26,7 +26,7 @@ function createWindow() {
     });
 
     // Load the app
-    if (isDev) {
+    if (!app.isPackaged) {
         // In dev, load from vite dev server
         mainWindow.loadURL('http://localhost:5173');
         // Open DevTools
