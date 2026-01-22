@@ -1,7 +1,8 @@
 import { app, BrowserWindow, shell, dialog } from 'electron';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { autoUpdater } from 'electron-updater';
+import electronUpdater from 'electron-updater';
+const { autoUpdater } = electronUpdater;
 
 
 // Get __dirname equivalent in ESM
