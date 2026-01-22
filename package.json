@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:e2e": "playwright test",
     "electron:dev": "concurrently \"vite\" \"electron .\"",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "npx rimraf dist_electron && vite build && electron-builder"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
