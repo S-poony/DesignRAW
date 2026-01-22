@@ -43,6 +43,18 @@ npm run electron:build
 -   **marked** - Markdown parsing
 
 
-## License
 
-MIT
+## Releasing Updates (Desktop App)
+
+To push a new version to users:
+1.  **Bump Version**: Open `package.json` and increase the `"version"` (e.g., `"1.0.0"` -> `"1.0.1"`).
+2.  **Build**: Run `npm run electron:build`.
+3.  **GitHub Release**:
+    *   Go to GitHub > Releases > "Draft a new release".
+    *   Tag the release (e.g., `v1.0.1`).
+    *   **Upload Assets**: You MUST upload these files from `dist_electron/`:
+        *   `BROCO Setup X.X.X.exe` (The installer)
+        *   `latest.yml` (Critical for auto-updates to work)
+        *   `latest.yml.blockmap` (Optional, optimizes update size)
+    *   Publish the release.
+4.  Users will receive the update automatically next time they open the app.
