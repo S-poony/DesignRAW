@@ -20,7 +20,8 @@ const defaultSettings = {
     },
     dividers: {
         width: DIVIDER_SIZE,
-        color: '#d1d5db'
+        color: '#d1d5db',
+        showBorders: true
     }
 };
 
@@ -85,6 +86,13 @@ export function applySettings() {
     // Divider settings
     root.style.setProperty('--divider-size', `${settings.dividers.width}px`);
     root.style.setProperty('--divider-color', settings.dividers.color);
+
+    // Layout border settings
+    if (settings.dividers.showBorders) {
+        root.style.setProperty('--layout-border-width', `${settings.dividers.width}px`);
+    } else {
+        root.style.setProperty('--layout-border-width', '1px');
+    }
 }
 
 /**
@@ -237,6 +245,9 @@ function syncFormWithSettings() {
     if (dividerWidthSlider) dividerWidthSlider.value = settings.dividers.width;
     if (dividerWidthValue) dividerWidthValue.textContent = `${settings.dividers.width}px`;
     updateColorUI('divider-color', settings.dividers.color);
+
+    const showBordersToggle = document.getElementById('setting-show-borders');
+    if (showBordersToggle) showBordersToggle.checked = settings.dividers.showBorders;
 }
 
 /**
@@ -390,4 +401,9 @@ function setupDividerControls() {
     });
 
     setupColorSelection('divider-color', 'dividers', 'color');
+
+    const showBordersToggle = document.getElementById('setting-show-borders');
+    showBordersToggle?.addEventListener('change', (e) => {
+        updateSetting('dividers', 'showBorders', e.target.checked);
+    });
 }

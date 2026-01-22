@@ -143,7 +143,6 @@ async function performExport(format, qualityMultiplier) {
             paperWrapper.style.width = '100%';
             paperWrapper.style.height = '100%';
             paperWrapper.style.boxShadow = 'none';
-            paperWrapper.style.border = 'none';
             paperWrapper.style.margin = '0';
             paperWrapper.style.zoom = '1';
             tempContainer.appendChild(paperWrapper);
@@ -268,7 +267,6 @@ async function performPublishFlipbook(qualityMultiplier) {
             paperWrapper.style.width = '100%';
             paperWrapper.style.height = '100%';
             paperWrapper.style.boxShadow = 'none';
-            paperWrapper.style.border = 'none';
             paperWrapper.style.margin = '0';
             // CRITICAL: Layout consistency
             paperWrapper.style.zoom = '1';

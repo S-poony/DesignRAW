@@ -5,7 +5,7 @@
     aspect-ratio: 1 / 1.414;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     background-color: var(--paper-bg-color, white);
-    border: 1px solid #d1d5db;
+    border: var(--layout-border-width, 1px) solid var(--divider-color, #d1d5db);
     overflow: hidden;
     position: relative;
     display: flex;
