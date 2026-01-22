@@ -1,7 +1,7 @@
 {
   "name": "broco",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -45,6 +45,11 @@
     "win": {
       "target": "nsis",
       "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
     },
     "publish": {
       "provider": "github",
