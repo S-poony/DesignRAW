@@ -64,7 +64,7 @@
     display: grid;
     /* Centers the paper */
     place-items: center;
-    padding: 1rem;
+    padding: 0;
     /* 30px is roughly 2rem but sticking to 1rem=16px so 32px roughly */
 
     /* Container Query Context for Paper Scaling */

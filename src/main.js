@@ -285,21 +285,21 @@ function initialize() {
 
     // Initial scale calculation
     // Timeout to ensure CSS variables and layout are settled
-    setTimeout(updatePaperScale, 100);
+    // setTimeout(updatePaperScale, 100);
 
     // Handle window resize
-    window.addEventListener('resize', () => {
-        requestAnimationFrame(updatePaperScale);
-    });
+    // window.addEventListener('resize', () => {
+    //     requestAnimationFrame(updatePaperScale);
+    // });
 
     // Listen for settings and layout updates to re-scale
     document.addEventListener('settingsUpdated', () => {
-        setTimeout(updatePaperScale, 50);
+        // setTimeout(updatePaperScale, 50);
     });
     document.addEventListener('layoutUpdated', () => {
         // Layout update might change content height but usually not width? 
         // But if orientation changes it triggers this.
-        setTimeout(updatePaperScale, 50);
+        // setTimeout(updatePaperScale, 50);
     });
 }
 

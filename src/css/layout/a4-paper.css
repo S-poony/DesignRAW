@@ -1,11 +1,10 @@
 .a4-paper {
-    /* CSS-only Responsive Scaling using Container Queries */
-    /* Calculate width to fit EITHER the width OR the height of the container, minus padding (30px/side) */
-    width: min(calc(100cqw - 60px), calc((100cqh - 60px) * var(--ratio, 0.707)));
+    /* Responsive Scaling: Fit container with 20px margin on all sides */
+    width: min(calc(100cqw - 40px), calc((100cqh - 40px) * var(--ratio, 0.707)));
+    height: auto;
 
     aspect-ratio: var(--ratio, 1 / 1.414);
-    /* Default A4 aspect ratio */
-    height: auto;
+    margin: auto;
 
     /* Box Styles */
     box-shadow: var(--shadow-paper, 0 10px 25px rgba(0, 0, 0, 0.2));
@@ -15,9 +14,6 @@
     position: relative;
     display: flex;
     flex-shrink: 0;
-
-    /* Centering */
-    margin: auto;
 }
 
 /* Cover image scaling container */
