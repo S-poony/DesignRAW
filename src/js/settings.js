@@ -61,7 +61,7 @@ export function updateSetting(category, key, value) {
     }
 }
 
-function calculatePaperDimensions() {
+export function calculatePaperDimensions() {
     // Rule: width + height = 2000px
     // Ratio = width / height (if landscape) or height / width (if portrait)?
     // Actually typically ratio is long / short.

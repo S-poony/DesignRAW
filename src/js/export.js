@@ -7,9 +7,7 @@ import { state } from './state.js';
 import { renderLayout } from './renderer.js';
 import { showAlert, showPublishSuccess } from './utils.js';
 import { toast } from './errorHandler.js';
-
-const BASE_A4_WIDTH = 794;
-const BASE_A4_HEIGHT = 1123;
+import { calculatePaperDimensions, getSettings } from './settings.js';
 
 const FLIPBOOK_API_ENDPOINT = 'https://content.lojkine.art/api/flipbook';
 
@@ -29,8 +27,10 @@ export function setupExportHandlers() {
         const quality = parseInt(qualitySlider.value);
         qualityValue.textContent = `${quality}%`;
         const multiplier = quality / 100;
-        const width = Math.round(BASE_A4_WIDTH * multiplier);
-        const height = Math.round(BASE_A4_HEIGHT * multiplier);
+
+        const { width: layoutWidth, height: layoutHeight } = calculatePaperDimensions();
+        const width = Math.round(layoutWidth * multiplier);
+        const height = Math.round(layoutHeight * multiplier);
         dimensionsText.textContent = `${width} x ${height} px`;
     }
 
@@ -109,12 +109,14 @@ async function performExport(format, qualityMultiplier) {
 
     const tempContainer = document.createElement('div');
     // ... existing style setup ...
+    const { width: layoutWidth, height: layoutHeight } = calculatePaperDimensions();
+
     tempContainer.style.position = 'fixed';
     tempContainer.style.top = '0';
     tempContainer.style.left = '0';
     tempContainer.style.zIndex = '-9999';
-    tempContainer.style.width = `${BASE_A4_WIDTH}px`;
-    tempContainer.style.height = `${BASE_A4_HEIGHT}px`;
+    tempContainer.style.width = `${layoutWidth}px`;
+    tempContainer.style.height = `${layoutHeight}px`;
     tempContainer.style.backgroundColor = '#ffffff';
     tempContainer.style.boxSizing = 'border-box';
     tempContainer.style.margin = '0';
@@ -165,10 +167,10 @@ async function performExport(format, qualityMultiplier) {
                 useCORS: true,
                 logging: false,
                 backgroundColor: '#ffffff',
-                width: BASE_A4_WIDTH,
-                height: BASE_A4_HEIGHT,
-                windowWidth: BASE_A4_WIDTH,
-                windowHeight: BASE_A4_HEIGHT
+                width: layoutWidth,
+                height: layoutHeight,
+                windowWidth: layoutWidth,
+                windowHeight: layoutHeight
             });
 
             const timestampForFile = new Date().getTime();
@@ -191,7 +193,7 @@ async function performExport(format, qualityMultiplier) {
                 pdf.addImage(imgData, 'JPEG', 0, 0, PDF_W, PDF_H);
 
                 // Add interactive links
-                addLinksToPdf(pdf, paperWrapper, PDF_W / BASE_A4_WIDTH);
+                addLinksToPdf(pdf, paperWrapper, PDF_W / layoutWidth);
 
             } else if (isSingleImageExport) {
                 const ext = format === 'jpeg' ? 'jpg' : 'png';
@@ -240,12 +242,14 @@ async function performPublishFlipbook(qualityMultiplier) {
     // STRICT ALIGNMENT WITH performExport
     const tempContainer = document.createElement('div');
     // Basic resets
+    const { width: layoutWidth, height: layoutHeight } = calculatePaperDimensions();
+
     tempContainer.style.position = 'fixed';
     tempContainer.style.top = '0';
     tempContainer.style.left = '0';
     tempContainer.style.zIndex = '-9999';
-    tempContainer.style.width = `${BASE_A4_WIDTH}px`;
-    tempContainer.style.height = `${BASE_A4_HEIGHT}px`;
+    tempContainer.style.width = `${layoutWidth}px`;
+    tempContainer.style.height = `${layoutHeight}px`;
     tempContainer.style.backgroundColor = '#ffffff';
     // CRITICAL: Copy styles from performExport that affect layout/wrapping
     tempContainer.style.boxSizing = 'border-box';
@@ -291,13 +295,15 @@ async function performPublishFlipbook(qualityMultiplier) {
             // Reverted Link Logic: Standard extraction without hiding elements
             // The text fix is strictly relying on DOM container alignment now.
 
+            const { width: layoutWidth, height: layoutHeight } = calculatePaperDimensions();
+
             const canvas = await html2canvas(tempContainer, {
                 scale: qualityMultiplier,
                 useCORS: true,
-                width: BASE_A4_WIDTH,
-                height: BASE_A4_HEIGHT,
-                windowWidth: BASE_A4_WIDTH,
-                windowHeight: BASE_A4_HEIGHT,
+                width: layoutWidth,
+                height: layoutHeight,
+                windowWidth: layoutWidth,
+                windowHeight: layoutHeight,
                 backgroundColor: '#ffffff'
             });
 
@@ -306,8 +312,8 @@ async function performPublishFlipbook(qualityMultiplier) {
 
             apiPages.push({
                 imageData,
-                width: BASE_A4_WIDTH,
-                height: BASE_A4_HEIGHT,
+                width: layoutWidth,
+                height: layoutHeight,
                 links
             });
         }
