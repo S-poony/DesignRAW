@@ -108,6 +108,10 @@ export function handleSplitClick(event) {
         return;
     }
 
+    // Image logic: Toggle flip if Alt + Click on image (or handle via button, but keeping shortcut optional)
+    // Actually, let's keep click behavior simple and use the new button for flip. 
+    // But we need to ensure flip state is preserved during split below.
+
     // Text logic: Don't split if clicking text without Shift or Alt (one is required to split)
     if ((node.text !== null && node.text !== undefined) && !event.shiftKey && !event.altKey) {
         // Do nothing - clicking text area should focus editor, not split
@@ -133,7 +137,7 @@ export function handleSplitClick(event) {
     // If there was an image, migrate it in state
     if (node.image) {
         const targetNode = event.ctrlKey ? childB : childA;
-        targetNode.image = { ...node.image };
+        targetNode.image = { ...node.image }; // This copies fit and flip properties
         node.image = null;
     }
 
@@ -229,6 +233,18 @@ export function toggleTextAlignment(rectId) {
     node.textAlign = node.textAlign === 'center' ? 'left' : 'center';
 
     renderAndRestoreFocus(getCurrentPage(), `align-btn-${rectId}`);
+}
+
+export function toggleImageFlip(rectId) {
+    const node = findNodeById(getCurrentPage(), rectId);
+    if (!node || !node.image) return;
+
+    saveState();
+    // Toggle flip state (undefined/false -> true -> false)
+    node.image.flip = !node.image.flip;
+
+    // Restore focus to flip button
+    renderAndRestoreFocus(getCurrentPage(), `flip-btn-${rectId}`);
 }
 
 export function startDrag(event, dividerElement = null) {

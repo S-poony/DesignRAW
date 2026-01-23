@@ -438,6 +438,13 @@ async function swapImagesForHighRes(container) {
                         parent.style.backgroundSize = img.style.objectFit || 'cover';
                         parent.style.backgroundPosition = 'center';
                         parent.style.backgroundRepeat = 'no-repeat';
+
+                        // Check for flip transform on the original image
+                        // We strictly look for the scaleX(-1) which we set in renderer.js
+                        if (img.style.transform && img.style.transform.includes('scaleX(-1)')) {
+                            parent.style.transform = 'scaleX(-1)';
+                        }
+
                         img.style.display = 'none'; // Hide original
                     }
                     resolve();

@@ -4,7 +4,7 @@ import { A4_PAPER_ID } from './constants.js';
 import { assetManager } from './AssetManager.js';
 import { dragDropService } from './DragDropService.js';
 import { attachImageDragHandlers, handleTouchStart, handleTouchMove, handleTouchEnd } from './assets.js';
-import { handleSplitClick, startDrag, startEdgeDrag, createTextInRect, toggleTextAlignment, renderAndRestoreFocus } from './layout.js';
+import { handleSplitClick, startDrag, startEdgeDrag, createTextInRect, toggleTextAlignment, renderAndRestoreFocus, toggleImageFlip } from './layout.js';
 import { saveState } from './history.js';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -84,8 +84,39 @@ function renderLeafNode(container, node) {
             img.style.height = '100%';
             img.style.objectFit = node.image.fit || 'cover';
 
+            img.style.objectFit = node.image.fit || 'cover';
+
+            if (node.image.flip) {
+                img.style.transform = 'scaleX(-1)';
+            }
+
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.className = 'image-controls';
+            buttonsContainer.style.position = 'absolute';
+            buttonsContainer.style.top = '8px';
+            buttonsContainer.style.right = '8px';
+            buttonsContainer.style.display = 'flex';
+            buttonsContainer.style.gap = '4px';
+
+            const flipBtn = document.createElement('button');
+            flipBtn.id = `flip-btn-${node.id}`;
+            flipBtn.className = 'flip-image-btn text-white bg-black/50 hover:bg-black/70 rounded p-1 transition-colors';
+            flipBtn.title = 'Flip Image';
+            flipBtn.innerHTML = `<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 18.1136V5.88638C2 4.18423 2 3.33316 2.54242 3.05402C3.08484 2.77488 3.77738 3.26956 5.16247 4.25891L6.74371 5.38837C7.35957 5.82827 7.6675 6.04822 7.83375 6.37127C8 6.69432 8 7.07274 8 7.82957V16.1704C8 16.9273 8 17.3057 7.83375 17.6287C7.6675 17.9518 7.35957 18.1717 6.74372 18.6116L5.16248 19.7411C3.77738 20.7304 3.08484 21.2251 2.54242 20.946C2 20.6668 2 19.8158 2 18.1136Z" fill="currentColor"/>
+<path d="M22 18.1136V5.88638C22 4.18423 22 3.33316 21.4576 3.05402C20.9152 2.77488 20.2226 3.26956 18.8375 4.25891L17.2563 5.38837C16.6404 5.82827 16.3325 6.04822 16.1662 6.37127C16 6.69432 16 7.07274 16 7.82957V16.1704C16 16.9273 16 17.3057 16.1662 17.6287C16.3325 17.9518 16.6404 18.1717 17.2563 18.6116L18.8375 19.7411C20.2226 20.7304 20.9152 21.2251 21.4576 20.946C22 20.6668 22 19.8158 22 18.1136Z" fill="currentColor"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.4142 1.25 12.75 1.58579 12.75 2V6C12.75 6.41421 12.4142 6.75 12 6.75C11.5858 6.75 11.25 6.41421 11.25 6V2C11.25 1.58579 11.5858 1.25 12 1.25ZM12 9.25C12.4142 9.25 12.75 9.58579 12.75 10V14C12.75 14.4142 12.4142 14.75 12 14.75C11.5858 14.75 11.25 14.4142 11.25 14V10C11.25 9.58579 11.5858 9.25 12 9.25ZM12 17.25C12.4142 17.25 12.75 17.5858 12.75 18V22C12.75 22.4142 12.4142 22.75 12 22.75C11.5858 22.75 11.25 22.4142 11.25 22V18C11.25 17.5858 11.5858 17.25 12 17.25Z" fill="currentColor"/>
+</svg>`;
+            flipBtn.setAttribute('aria-label', 'Flip image');
+            flipBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleImageFlip(node.id);
+            });
+
             const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-image-btn';
+            removeBtn.className = 'remove-image-btn text-white bg-black/50 hover:bg-black/70 rounded p-1 transition-colors';
             removeBtn.title = 'Remove image';
             removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
             removeBtn.setAttribute('aria-label', 'Remove image');
@@ -98,8 +129,23 @@ function renderLeafNode(container, node) {
                 document.dispatchEvent(new CustomEvent('layoutUpdated'));
             });
 
+
+
+            buttonsContainer.style.opacity = '0';
+            buttonsContainer.style.transition = 'opacity 0.2s';
+
+            container.addEventListener('mouseenter', () => {
+                buttonsContainer.style.opacity = '1';
+            });
+            container.addEventListener('mouseleave', () => {
+                buttonsContainer.style.opacity = '0';
+            });
+
+            buttonsContainer.appendChild(flipBtn);
+            buttonsContainer.appendChild(removeBtn);
+
             container.appendChild(img);
-            container.appendChild(removeBtn);
+            container.appendChild(buttonsContainer);
 
             attachImageDragHandlers(img, asset, container);
         } else {

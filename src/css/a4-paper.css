@@ -221,9 +221,6 @@
 
 /* Image removal button */
 .remove-image-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -231,7 +228,7 @@
     border: 1px solid #d1d5db;
     color: #374151;
     cursor: pointer;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
@@ -249,10 +246,6 @@
     background: #ef4444;
     color: white;
     border-color: #dc2626;
-}
-
-.splittable-rect:hover .remove-image-btn {
-    display: flex;
 }
 
 /* Ctrl key held style */
