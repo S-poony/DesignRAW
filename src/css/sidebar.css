@@ -20,11 +20,41 @@
         width: 100%;
         max-height: none;
         height: auto;
-        overflow-y: visible;
+        flex-direction: row;
+        flex-wrap: wrap;
+        /* Allow wrapping for buttons */
+        align-items: center;
+        justify-content: space-around;
+        padding: 0.25rem;
+        gap: 0.5rem;
+        border: none;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    .sidebar hr {
+        display: none;
+        /* Hide separators in bar mode */
+    }
+
+    .asset-list {
+        /* Make asset list a horizontal strip */
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        order: 10;
+        /* Move to bottom of bar */
+    }
+
+    #import-assets-btn,
+    #export-layout-btn,
+    .shortcuts-dropdown {
         flex: 1;
-        /* Take remaining space */
-        min-height: 0;
-        overflow-y: auto;
+        /* Share width */
+        white-space: nowrap;
+        min-width: fit-content;
     }
 }
 
