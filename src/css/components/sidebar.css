@@ -1,14 +1,14 @@
 .sidebar {
     position: relative;
-    width: 280px;
-    background: white;
-    border: 1px solid #d1d5db;
+    width: var(--sidebar-width, 280px);
+    background: var(--color-bg-white, white);
+    border: 1px solid var(--color-border, #d1d5db);
     border-radius: 0.5rem;
     padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
     z-index: 10;
     height: 100%;
     overflow-y: auto;
@@ -62,12 +62,12 @@
 .shortcuts-content h3 {
     margin-top: 1.25rem;
     font-size: 1.125rem;
-    color: #111827;
+    color: var(--color-text-heading, #111827);
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-border-light, #e5e7eb);
     padding-bottom: 0.25rem;
 }
 
@@ -76,7 +76,7 @@
     font-size: 1rem;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
-    color: #374151;
+    color: var(--color-text-main, #374151);
 }
 
 .shortcuts-content h2:first-child,
@@ -97,11 +97,11 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-    background: #f9fafb;
+    background: var(--color-bg-light, #f9fafb);
     border-radius: 0.5rem;
     cursor: pointer;
     font-weight: 600;
-    color: #374151;
+    color: var(--color-text-main, #374151);
     list-style: none;
     user-select: none;
     transition: background-color 0.2s;
@@ -112,18 +112,18 @@
 }
 
 .shortcuts-dropdown summary:hover {
-    background: #f3f4f6;
+    background: var(--color-border-light, #f3f4f6);
 }
 
 .shortcuts-dropdown[open] {
-    background: #ffffff;
-    border-color: #e5e7eb;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    background: var(--color-bg-white, #ffffff);
+    border-color: var(--color-border-light, #e5e7eb);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 
 .shortcuts-dropdown[open] summary {
-    background: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
+    background: var(--color-bg-white, #ffffff);
+    border-bottom: 1px solid var(--color-border-light, #f3f4f6);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -134,7 +134,7 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    color: #4f46e5;
+    color: var(--color-primary, #4f46e5);
 }
 
 .summary-icon .icon {
@@ -147,7 +147,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #9ca3af;
+    color: var(--color-text-subtle, #9ca3af);
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -162,14 +162,14 @@
 .shortcuts-content p {
     margin: 0.5rem 0;
     font-size: 0.875rem;
-    color: #4b5563;
+    color: var(--color-text-muted, #4b5563);
     line-height: 1.5;
 }
 
 .shortcuts-content strong,
 .shortcuts-content code {
-    color: #111827;
-    background: #f3f4f6;
+    color: var(--color-text-heading, #111827);
+    background: var(--color-bg-light, #f3f4f6);
     padding: 2px 4px;
     border-radius: 4px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -183,7 +183,7 @@
 
 .shortcuts-content li {
     font-size: 0.875rem;
-    color: #4b5563;
+    color: var(--color-text-muted, #4b5563);
     margin-bottom: 0.25rem;
 }
 
@@ -201,7 +201,7 @@
 .asset-list.drag-over,
 .asset-list.touch-drag-over {
     background-color: rgba(79, 70, 229, 0.1);
-    border-color: #4f46e5;
+    border-color: var(--color-primary, #4f46e5);
     border-style: dashed;
 }
 
@@ -213,7 +213,7 @@
 
 .asset-item {
     aspect-ratio: 1;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-border-light, #e5e7eb);
     border-radius: 0.25rem;
     overflow: hidden;
     cursor: grab;
@@ -261,7 +261,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #374151;
+    color: var(--color-text-main, #374151);
     transition: all 0.2s;
     padding: 0;
 }
@@ -272,10 +272,10 @@
 }
 
 .asset-action-btn:hover {
-    background: #f3f4f6;
+    background: var(--color-bg-light, #f3f4f6);
 }
 
 .asset-action-btn.remove:hover {
     background: #fee2e2;
-    color: #dc2626;
+    color: var(--color-danger, #dc2626);
 }

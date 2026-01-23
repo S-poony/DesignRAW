@@ -1,0 +1,79 @@
+/* Shared Floating Button Styles */
+
+/* Base class for all floating buttons */
+.floating-btn,
+.remove-image-btn,
+.remove-text-btn,
+.align-text-btn {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border, #d1d5db);
+    color: var(--color-text-main, #374151);
+    cursor: pointer;
+    display: none;
+    /* Hidden by default, shown on hover of parent */
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.floating-btn:hover,
+.remove-image-btn:hover,
+.remove-text-btn:hover {
+    background: var(--color-danger, #ef4444);
+    color: white;
+    border-color: var(--color-danger-hover, #dc2626);
+}
+
+.floating-btn .icon,
+.remove-image-btn .icon,
+.remove-text-btn .icon,
+.align-text-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Specific button placements */
+/* Top-Right: Remove Button */
+.btn-remove,
+.remove-image-btn,
+.remove-text-btn {
+    top: 8px;
+    right: 8px;
+}
+
+/* Top-Right: Align/Edit Button (offset to the left of remove) */
+.btn-align,
+.align-text-btn {
+    top: 8px;
+    right: 48px;
+    /* Different hover color for non-destructive actions */
+    color: var(--color-primary, #4f46e5);
+}
+
+.btn-align:hover,
+.align-text-btn:hover {
+    background: var(--color-primary, #4f46e5);
+    color: white;
+    border-color: var(--color-primary-hover, #4338ca);
+}
+
+/* Show buttons when the splittable-rect is hovered */
+/* Note: The HTML structure varies slightly between text and images, so we target generic classes or specific parents */
+.splittable-rect:hover .floating-btn,
+.splittable-rect:hover .remove-image-btn,
+/* Legacy support */
+.splittable-rect:hover .remove-text-btn,
+/* Legacy support */
+.splittable-rect:hover .align-text-btn
+
+/* Legacy support */
+    {
+    display: flex;
+}

@@ -1,11 +1,19 @@
-@import './css/utilities.css';
-@import './css/base.css';
-@import './css/sidebar.css';
-@import './css/pages-sidebar.css';
-@import './css/a4-paper.css';
-@import './css/modal.css';
-@import './css/settings.css';
-@import './css/text-editor.css';
-@import './css/toast.css';
-@import './css/a11y.css';
-@import './css/shortcut-overlay.css';
+@import './css/base/variables.css';
+@import './css/base/base.css';
+@import './css/utils/utilities.css';
+@import './css/utils/a11y.css';
+
+/* Layout */
+@import './css/layout/main-layout.css';
+@import './css/layout/a4-paper.css';
+
+/* Components */
+@import './css/components/sidebar.css';
+@import './css/components/pages-sidebar.css';
+@import './css/components/modal.css';
+@import './css/components/settings.css';
+@import './css/components/text-editor.css';
+@import './css/components/toast.css';
+@import './css/components/shortcut-overlay.css';
+@import './css/components/floating-buttons.css';
+/* New file for standardized buttons */

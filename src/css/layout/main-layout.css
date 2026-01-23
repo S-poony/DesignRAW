@@ -1,21 +1,4 @@
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    overflow: hidden;
-    background-color: #f6f3f3;
-    font-family: sans-serif;
-}
-
-#app {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
+/* Main Application Grid Layout */
 
 .main-layout {
     display: grid;
@@ -29,7 +12,6 @@ body {
     margin: 0;
     overflow: hidden;
     max-width: 100%;
-    /* Remove 1700px limit, or keep it? App should probably fill screen */
 }
 
 /* File Actions - Toolbar Row */
@@ -41,9 +23,9 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
-    background: #f6f3f3;
+    background: var(--color-bg-light, #f6f3f3);
     z-index: 20;
-    height: 60px;
+    height: var(--header-height, 60px);
     /* Fixed header height */
     box-sizing: border-box;
     position: static;
@@ -83,6 +65,7 @@ body {
     /* Centers the paper */
     place-items: center;
     padding: 1rem;
+    /* 30px is roughly 2rem but sticking to 1rem=16px so 32px roughly */
 
     /* Container Query Context for Paper Scaling */
     container-type: size;
@@ -105,87 +88,6 @@ body {
     gap: 1rem;
 }
 
-/* Button & UI Styles from original file */
-.btn-primary {
-    background-color: #4f46e5;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-    background-color: #4338ca;
-}
-
-.btn-secondary {
-    background-color: #f3f4f6;
-    color: #374151;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: 1px solid #d1d5db;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-secondary:hover {
-    background-color: #e5e7eb;
-}
-
-.btn-text {
-    background: none;
-    border: none;
-    color: #6b7280;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.btn-text:hover {
-    color: #374151;
-}
-
-.btn-file {
-    background-color: #4f46e5;
-    color: white;
-    border: 1px solid transparent;
-    border-radius: 0.375rem;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    padding: 0 0.75rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-
-.btn-file:hover {
-    background-color: #4338ca;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.btn-file .icon {
-    width: 18px;
-    height: 18px;
-    background-color: white;
-    mask-size: cover;
-    -webkit-mask-size: cover;
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid #e5e7eb;
-    margin: 1rem 0;
-}
-
 @media (max-width: 1024px) {
     .main-layout {
         display: flex;
@@ -203,8 +105,8 @@ hr {
         position: static;
         width: 100%;
         flex-shrink: 0;
-        border-bottom: 1px solid #e5e7eb;
-        background: #f6f3f3;
+        border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+        background: var(--color-bg-light, #f6f3f3);
         justify-content: space-between;
         padding: 0.5rem 1rem;
     }
