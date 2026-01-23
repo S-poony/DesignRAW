@@ -147,12 +147,18 @@ async function performExport(format, qualityMultiplier) {
             paperWrapper.style.zoom = '1';
             tempContainer.appendChild(paperWrapper);
 
-            renderLayout(paperWrapper, pageLayout);
+            renderLayout(paperWrapper, pageLayout, {
+                useHighResImages: true,
+                hideControls: true
+            });
 
-            await swapImagesForHighRes(paperWrapper);
+            // Need to wait for high-res images to load since they are background images now?
+            // Actually, if we set background-image, the browser fetches it. html2canvas might need it ready.
+            // We can use a small utility to wait for all background images in the container.
+            await waitForBackgroundImages(paperWrapper);
             await document.fonts.ready;
 
-            paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt, .align-text-btn, .text-editor, .edge-handle').forEach(el => el.remove());
+            // No manual DOM cleanup needed anymore!
 
             const canvas = await html2canvas(tempContainer, {
                 scale: qualityMultiplier,
@@ -272,12 +278,15 @@ async function performPublishFlipbook(qualityMultiplier) {
             paperWrapper.style.zoom = '1';
             tempContainer.appendChild(paperWrapper);
 
-            renderLayout(paperWrapper, pageLayout);
-            await swapImagesForHighRes(paperWrapper);
+            renderLayout(paperWrapper, pageLayout, {
+                useHighResImages: true,
+                hideControls: true
+            });
+
+            await waitForBackgroundImages(paperWrapper);
             await document.fonts.ready;
 
-            // Remove UI elements
-            paperWrapper.querySelectorAll('.remove-image-btn, .remove-text-btn, .text-prompt, .align-text-btn, .text-editor, .edge-handle').forEach(el => el.remove());
+            // Remove UI elements logic is now handled by renderLayout options
 
             // Reverted Link Logic: Standard extraction without hiding elements
             // The text fix is strictly relying on DOM container alignment now.
@@ -420,60 +429,28 @@ function extractBookmarksForApi(pages) {
     return bookmarks;
 }
 
-async function swapImagesForHighRes(container) {
-    const imageElements = container.querySelectorAll('img[data-asset-id]');
-    const swapPromises = Array.from(imageElements).map((img) => {
-        const assetId = img.getAttribute('data-asset-id');
-        const asset = assetManager.getAsset(assetId);
-
-        if (asset && asset.fullResData) {
-            return new Promise((resolve) => {
-                const tempImg = new Image();
-                tempImg.onload = () => {
-                    const parent = img.parentElement;
-                    if (parent) {
-                        // Apply background image to parent div
-                        parent.style.backgroundImage = `url(${asset.fullResData})`;
-                        // Use inline style object-fit if present, else cover
-                        parent.style.backgroundSize = img.style.objectFit || 'cover';
-                        parent.style.backgroundPosition = 'center';
-                        parent.style.backgroundRepeat = 'no-repeat';
-
-                        // Check for flip transform on the original image
-                        // We strictly look for the scaleX(-1) which we set in renderer.js
-                        if (img.style.transform && img.style.transform.includes('scaleX(-1)')) {
-                            parent.style.transform = 'scaleX(-1)';
-                        }
-
-                        img.style.display = 'none'; // Hide original
+function waitForBackgroundImages(container) {
+    const promises = [];
+    const elements = container.querySelectorAll('*');
+    for (let el of elements) {
+        const bg = getComputedStyle(el).backgroundImage;
+        if (bg && bg !== 'none') {
+            const match = bg.match(/url\(['"]?(.*?)['"]?\)/);
+            if (match && match[1]) {
+                promises.push(new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = match[1];
+                    if (img.complete) {
+                        resolve();
+                    } else {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Resolve anyway to avoid hanging
                     }
-                    resolve();
-                };
-                tempImg.onerror = resolve;
-                tempImg.src = asset.fullResData;
-            });
-        }
-        return Promise.resolve();
-    });
-
-    // Also await the cover image background if it exists
-    const coverImage = container.querySelector('.paper-cover-image');
-    if (coverImage) {
-        const bgImage = getComputedStyle(coverImage).backgroundImage;
-        if (bgImage && bgImage !== 'none') {
-            const url = bgImage.match(/url\(['"]?(.*?)['"]?\)/)?.[1];
-            if (url) {
-                swapPromises.push(new Promise((resolve) => {
-                    const tempImg = new Image();
-                    tempImg.onload = resolve;
-                    tempImg.onerror = resolve;
-                    tempImg.src = url;
                 }));
             }
         }
     }
-
-    await Promise.all(swapPromises);
+    return Promise.all(promises);
 }
 
 function downloadBlob(blob, filename) {

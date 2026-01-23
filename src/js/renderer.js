@@ -16,8 +16,8 @@ marked.use({
     breaks: true
 });
 
-export function renderLayout(container, node) {
-    // Top-level paper handling: ensure we don't accidentally turn the paper into rect-1
+export function renderLayout(container, node, options = {}) {
+    // Top-level paper handling: ensure we don't accidentally turn the paper into redt-1
     if (container.id === A4_PAPER_ID || container.classList.contains('a4-paper')) {
         const settings = getSettings();
         container.innerHTML = '';
@@ -26,16 +26,18 @@ export function renderLayout(container, node) {
 
         const rootElement = createDOMRect(node, null);
         container.appendChild(rootElement);
-        renderNodeRecursive(rootElement, node);
-        addEdgeHandles(container);
+        renderNodeRecursive(rootElement, node, options);
+        if (!options.hideControls) {
+            addEdgeHandles(container);
+        }
         renderCoverImage(container);
         renderPageNumber(container);
         return;
     }
-    renderNodeRecursive(container, node);
+    renderNodeRecursive(container, node, options);
 }
 
-function renderNodeRecursive(element, node) {
+function renderNodeRecursive(element, node, options) {
     // Clear previous state
     element.innerHTML = '';
     // Use classList.add to preserve classes from createDOMRect or other sources
@@ -43,13 +45,13 @@ function renderNodeRecursive(element, node) {
     element.style.position = '';
 
     if (node.splitState === 'split') {
-        renderSplitNode(element, node);
+        renderSplitNode(element, node, options);
     } else {
-        renderLeafNode(element, node);
+        renderLeafNode(element, node, options);
     }
 }
 
-function renderSplitNode(container, node) {
+function renderSplitNode(container, node, options) {
     container.classList.add(node.orientation === 'vertical' ? 'flex-row' : 'flex-col');
     container.setAttribute('data-split-state', 'split');
 
@@ -58,18 +60,24 @@ function renderSplitNode(container, node) {
     const divider = createDOMDivider(node, rectA, rectB);
 
     container.appendChild(rectA);
-    container.appendChild(divider);
+    // Only append divider if controls are visible
+    if (!options.hideControls) {
+        container.appendChild(divider);
+    }
     container.appendChild(rectB);
 
-    renderNodeRecursive(rectA, node.children[0]);
-    renderNodeRecursive(rectB, node.children[1]);
+    renderNodeRecursive(rectA, node.children[0], options);
+    renderNodeRecursive(rectB, node.children[1], options);
 }
 
-function renderLeafNode(container, node) {
+function renderLeafNode(container, node, options) {
     container.setAttribute('data-split-state', 'unsplit');
-    // Make leaf key-accessible
-    container.setAttribute('tabindex', '0');
-    container.setAttribute('role', 'button'); // It acts like a button (split action)
+
+    // Only make interactive if controls are enabled
+    if (!options.hideControls) {
+        container.setAttribute('tabindex', '0');
+        container.setAttribute('role', 'button');
+    }
 
     if (node.image) {
         const asset = assetManager.getAsset(node.image.assetId);
@@ -77,109 +85,123 @@ function renderLeafNode(container, node) {
             container.innerHTML = '';
             container.style.position = 'relative';
 
-            const img = document.createElement('img');
-            img.src = asset.lowResData;
-            img.setAttribute('data-asset-id', asset.id);
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = node.image.fit || 'cover';
+            // Check if we should use high-res logic (background-image mostly for html2canvas stability)
+            if (options.useHighResImages && asset.fullResData) {
+                // High-res export rendering using background-image technique
+                container.style.backgroundImage = `url(${asset.fullResData})`;
+                container.style.backgroundSize = node.image.fit || 'cover';
+                container.style.backgroundPosition = 'center';
+                container.style.backgroundRepeat = 'no-repeat';
 
-            img.style.objectFit = node.image.fit || 'cover';
+                if (node.image.flip) {
+                    container.style.transform = 'scaleX(-1)';
+                }
+            } else {
+                // Standard editor rendering with <img> tag
+                const img = document.createElement('img');
+                img.src = asset.lowResData;
+                img.setAttribute('data-asset-id', asset.id);
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = node.image.fit || 'cover';
 
-            if (node.image.flip) {
-                img.style.transform = 'scaleX(-1)';
-            }
+                if (node.image.flip) {
+                    img.style.transform = 'scaleX(-1)';
+                }
 
-            const buttonsContainer = document.createElement('div');
-            buttonsContainer.className = 'image-controls';
-            buttonsContainer.style.position = 'absolute';
-            buttonsContainer.style.top = '8px';
-            buttonsContainer.style.right = '8px';
-            buttonsContainer.style.display = 'flex';
-            buttonsContainer.style.gap = '4px';
+                container.appendChild(img);
 
-            const flipBtn = document.createElement('button');
-            flipBtn.id = `flip-btn-${node.id}`;
-            flipBtn.className = 'flip-image-btn text-white bg-black/50 hover:bg-black/70 rounded p-1 transition-colors';
-            flipBtn.title = 'Flip Image';
-            flipBtn.innerHTML = `<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+                if (!options.hideControls) {
+                    const buttonsContainer = document.createElement('div');
+                    buttonsContainer.className = 'image-controls';
+                    buttonsContainer.style.position = 'absolute';
+                    buttonsContainer.style.top = '8px';
+                    buttonsContainer.style.right = '8px';
+                    buttonsContainer.style.display = 'flex';
+                    buttonsContainer.style.gap = '4px';
+
+                    buttonsContainer.style.opacity = '0';
+                    buttonsContainer.style.transition = 'opacity 0.2s';
+
+                    container.addEventListener('mouseenter', () => {
+                        buttonsContainer.style.opacity = '1';
+                    });
+                    container.addEventListener('mouseleave', () => {
+                        buttonsContainer.style.opacity = '0';
+                    });
+
+                    const flipBtn = document.createElement('button');
+                    flipBtn.id = `flip-btn-${node.id}`;
+                    flipBtn.className = 'flip-image-btn text-white bg-black/50 hover:bg-black/70 rounded p-1 transition-colors';
+                    flipBtn.title = 'Flip Image';
+                    flipBtn.innerHTML = `<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
 <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M2 18.1136V5.88638C2 4.18423 2 3.33316 2.54242 3.05402C3.08484 2.77488 3.77738 3.26956 5.16247 4.25891L6.74371 5.38837C7.35957 5.82827 7.6675 6.04822 7.83375 6.37127C8 6.69432 8 7.07274 8 7.82957V16.1704C8 16.9273 8 17.3057 7.83375 17.6287C7.6675 17.9518 7.35957 18.1717 6.74372 18.6116L5.16248 19.7411C3.77738 20.7304 3.08484 21.2251 2.54242 20.946C2 20.6668 2 19.8158 2 18.1136Z" fill="currentColor"/>
 <path d="M22 18.1136V5.88638C22 4.18423 22 3.33316 21.4576 3.05402C20.9152 2.77488 20.2226 3.26956 18.8375 4.25891L17.2563 5.38837C16.6404 5.82827 16.3325 6.04822 16.1662 6.37127C16 6.69432 16 7.07274 16 7.82957V16.1704C16 16.9273 16 17.3057 16.1662 17.6287C16.3325 17.9518 16.6404 18.1717 17.2563 18.6116L18.8375 19.7411C20.2226 20.7304 20.9152 21.2251 21.4576 20.946C22 20.6668 22 19.8158 22 18.1136Z" fill="currentColor"/>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.4142 1.25 12.75 1.58579 12.75 2V6C12.75 6.41421 12.4142 6.75 12 6.75C11.5858 6.75 11.25 6.41421 11.25 6V2C11.25 1.58579 11.5858 1.25 12 1.25ZM12 9.25C12.4142 9.25 12.75 9.58579 12.75 10V14C12.75 14.4142 12.4142 14.75 12 14.75C11.5858 14.75 11.25 14.4142 11.25 14V10C11.25 9.58579 11.5858 9.25 12 9.25ZM12 17.25C12.4142 17.25 12.75 17.5858 12.75 18V22C12.75 22.4142 12.4142 22.75 12 22.75C11.5858 22.75 11.25 22.4142 11.25 22V18C11.25 17.5858 11.5858 17.25 12 17.25Z" fill="currentColor"/>
 </svg>`;
-            flipBtn.setAttribute('aria-label', 'Flip image');
-            flipBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleImageFlip(node.id);
-            });
+                    flipBtn.setAttribute('aria-label', 'Flip image');
+                    flipBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleImageFlip(node.id);
+                    });
 
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-image-btn text-white bg-black/50 hover:bg-black/70 rounded p-1 transition-colors';
-            removeBtn.title = 'Remove image';
-            removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
-            removeBtn.setAttribute('aria-label', 'Remove image');
-            removeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                saveState();
-                node.image = null;
-                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
-                document.dispatchEvent(new CustomEvent('layoutUpdated'));
-            });
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-image-btn text-white bg-black/50 hover:bg-black/70 rounded p-1 transition-colors';
+                    removeBtn.title = 'Remove image';
+                    removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
+                    removeBtn.setAttribute('aria-label', 'Remove image');
+                    removeBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        saveState();
+                        node.image = null;
+                        renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                        document.dispatchEvent(new CustomEvent('layoutUpdated'));
+                    });
 
+                    buttonsContainer.appendChild(flipBtn);
+                    buttonsContainer.appendChild(removeBtn);
 
+                    container.appendChild(buttonsContainer);
 
-            buttonsContainer.style.opacity = '0';
-            buttonsContainer.style.transition = 'opacity 0.2s';
-
-            container.addEventListener('mouseenter', () => {
-                buttonsContainer.style.opacity = '1';
-            });
-            container.addEventListener('mouseleave', () => {
-                buttonsContainer.style.opacity = '0';
-            });
-
-            buttonsContainer.appendChild(flipBtn);
-            buttonsContainer.appendChild(removeBtn);
-
-            container.appendChild(img);
-            container.appendChild(buttonsContainer);
-
-            attachImageDragHandlers(img, asset, container);
+                    attachImageDragHandlers(img, asset, container);
+                }
+            }
         } else {
             container.innerHTML = '';
         }
     } else if (node.text !== null && node.text !== undefined) {
-        renderTextContent(container, node, false);
+        renderTextContent(container, node, false, options);
     } else {
         // Empty rectangle - show hover prompt
         container.innerHTML = '';
         container.style.position = 'relative';
 
-        const prompt = document.createElement('div');
-        prompt.className = 'text-prompt';
-        prompt.textContent = 'Click to split / Type to write';
-        container.appendChild(prompt);
+        if (!options.hideControls) {
+            const prompt = document.createElement('div');
+            prompt.className = 'text-prompt';
+            prompt.textContent = 'Click to split / Type to write';
+            container.appendChild(prompt);
 
-        // Allow click to bubble to parent for splitting (handled in main.js -> handleSplitClick)
-        // We only intercept keys to start writing
-        container.addEventListener('keydown', (e) => {
-            // Ignore modifiers, navigation keys, etc. if they are not printing characters
-            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                createTextInRect(node.id, e.key);
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
+            // Allow click to bubble to parent for splitting (handled in main.js -> handleSplitClick)
+            // We only intercept keys to start writing
+            container.addEventListener('keydown', (e) => {
+                // Ignore modifiers, navigation keys, etc. if they are not printing characters
+                if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                    createTextInRect(node.id, e.key);
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+        }
     }
-
-
 }
 
-function renderTextContent(container, node, startInEditMode = false) {
+function renderTextContent(container, node, startInEditMode = false, options = {}) {
     // Check if we should start in edit mode
+    // ... (rest of implementation)
     if (node._startInEditMode) {
         startInEditMode = true;
         delete node._startInEditMode;
@@ -193,293 +215,294 @@ function renderTextContent(container, node, startInEditMode = false) {
     // Preview - draggable like images
     const isCentered = node.textAlign === 'center';
     const preview = document.createElement('div');
-    preview.className = `markdown-content ${isCentered ? 'text-center' : ''} ${startInEditMode ? 'hidden' : ''}`;
-    preview.draggable = true;
-    preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
+    // Hide placeholder and empty content if hiding controls (export)
+    if (options.hideControls && !node.text) {
+        preview.innerHTML = '';
+    } else {
+        preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
+    }
 
+    preview.className = `markdown-content ${isCentered ? 'text-center' : ''} ${startInEditMode ? 'hidden' : ''}`;
+    preview.draggable = !options.hideControls;
+
+    // ... (editor logic)
     // Editor
     const editor = document.createElement('textarea');
-    editor.className = `text-editor ${isCentered ? 'text-center' : ''} ${startInEditMode ? '' : 'hidden'}`;
+    // Hide editor in export
+    editor.className = `text-editor ${isCentered ? 'text-center' : ''} ${startInEditMode ? '' : 'hidden'} ${options.hideControls ? 'hidden' : ''}`;
+    // ...
     editor.value = node.text || '';
     editor.placeholder = 'Write Markdown here...';
 
+    // ... (append preview and editor) ...
+    // ... (listeners) ...
     // Auto-focus if starting in edit mode
-    if (startInEditMode) {
+    if (startInEditMode && !options.hideControls) {
         container.classList.add('is-editing');
         setTimeout(() => editor.focus(), 0);
     }
 
-    editor.addEventListener('focus', () => {
-        container.classList.add('is-editing');
-    });
+    if (!options.hideControls) {
+        // Only attach interactive listeners if controls are not hidden
+        editor.addEventListener('focus', () => {
+            container.classList.add('is-editing');
+        });
 
-    // Drag preview to move text (like images)
-    preview.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', 'text-content');
-        dragDropService.startDrag({ text: node.text, textAlign: node.textAlign, sourceRect: container, sourceTextNode: node });
-    });
-    preview.addEventListener('dragend', () => {
-        dragDropService.endDrag();
-    });
+        // ... (other listeners)
 
-    // Touch support for text
-    preview.addEventListener('touchstart', (e) => handleTouchStart(e, { text: node.text, textAlign: node.textAlign, sourceRect: container, sourceTextNode: node }), { passive: false });
-    preview.addEventListener('touchmove', handleTouchMove, { passive: false });
-    preview.addEventListener('touchend', handleTouchEnd);
+        // Drag preview
+        preview.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', 'text-content');
+            dragDropService.startDrag({ text: node.text, textAlign: node.textAlign, sourceRect: container, sourceTextNode: node });
+        });
+        preview.addEventListener('dragend', () => {
+            dragDropService.endDrag();
+        });
 
-    // Click preview: check modifiers first, then enter edit mode
-    preview.addEventListener('click', (e) => {
-        // Let Shift+click and Ctrl+click bubble to split/delete handlers
-        if (e.shiftKey || e.ctrlKey || e.altKey) {
-            return;
-        }
-        // Plain click: enter edit mode
-        e.stopPropagation();
-        preview.classList.add('hidden');
-        editor.classList.remove('hidden');
-        editor.focus();
-    });
+        // Touch support
+        preview.addEventListener('touchstart', (e) => handleTouchStart(e, { text: node.text, textAlign: node.textAlign, sourceRect: container, sourceTextNode: node }), { passive: false });
+        preview.addEventListener('touchmove', handleTouchMove, { passive: false });
+        preview.addEventListener('touchend', handleTouchEnd);
 
-    // Editor click: allow Shift+click to bubble for splitting even while editing
-    editor.addEventListener('click', (e) => {
-        if (e.shiftKey || e.ctrlKey || e.altKey) {
-            return;
-        }
-        e.stopPropagation();
-    });
 
-    // Sync text on input
-    editor.addEventListener('input', () => {
-        node.text = editor.value;
-        // Also update preview in real-time so it's ready when switching back
-        preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
-        document.dispatchEvent(new CustomEvent('layoutUpdated'));
-    });
+        // Click preview: enter edit mode
+        preview.addEventListener('click', (e) => {
+            if (e.shiftKey || e.ctrlKey || e.altKey) return;
+            e.stopPropagation();
+            preview.classList.add('hidden');
+            editor.classList.remove('hidden');
+            editor.focus();
+        });
 
-    // Auto-pairing and Obsidian-like behavior
-    editor.addEventListener('keydown', (e) => {
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        const value = editor.value;
+        // ... (Editor listeners, pair completion, etc) ...
+        editor.addEventListener('click', (e) => {
+            if (e.shiftKey || e.ctrlKey || e.altKey) return;
+            e.stopPropagation();
+        });
+        editor.addEventListener('input', () => {
+            node.text = editor.value;
+            preview.innerHTML = DOMPurify.sanitize(marked.parse(node.text || '')) || '<span class="text-placeholder">Click to edit...</span>';
+            document.dispatchEvent(new CustomEvent('layoutUpdated'));
+        });
 
-        // Auto-pairing character map
-        const pairs = {
-            '(': ')',
-            '[': ']',
-            '{': '}',
-            '"': '"',
-            "'": "'",
-            '*': '*',
-            '_': '_',
-            '`': '`'
-        };
+        // ... (keydown handler from before) ...
+        editor.addEventListener('keydown', (e) => {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const value = editor.value;
 
-        const selection = value.substring(start, end);
+            // Auto-pairing character map
+            const pairs = {
+                '(': ')',
+                '[': ']',
+                '{': '}',
+                '"': '"',
+                "'": "'",
+                '*': '*',
+                '_': '_',
+                '`': '`'
+            };
 
-        if (pairs[e.key]) {
-            e.preventDefault();
-            let charToInsert = e.key;
-            let closingChar = pairs[e.key];
+            const selection = value.substring(start, end);
 
-            // Special case for double brackets [[ ]]
-            if (e.key === '[' && value[start - 1] === '[') {
-                editor.value = value.substring(0, start) + '[' + selection + ']]' + value.substring(end);
-                editor.selectionStart = start + 1;
-                editor.selectionEnd = start + 1 + selection.length;
-            } else {
-                editor.value = value.substring(0, start) + charToInsert + selection + closingChar + value.substring(end);
-                editor.selectionStart = start + 1;
-                editor.selectionEnd = start + 1 + selection.length;
+            if (pairs[e.key]) {
+                e.preventDefault();
+                let charToInsert = e.key;
+                let closingChar = pairs[e.key];
+
+                // Special case for double brackets [[ ]]
+                if (e.key === '[' && value[start - 1] === '[') {
+                    editor.value = value.substring(0, start) + '[' + selection + ']]' + value.substring(end);
+                    editor.selectionStart = start + 1;
+                    editor.selectionEnd = start + 1 + selection.length;
+                } else {
+                    editor.value = value.substring(0, start) + charToInsert + selection + closingChar + value.substring(end);
+                    editor.selectionStart = start + 1;
+                    editor.selectionEnd = start + 1 + selection.length;
+                }
+
+                editor.dispatchEvent(new Event('input'));
+                return;
             }
 
-            editor.dispatchEvent(new Event('input'));
-            return;
-        }
+            // Tab for indentation
+            if (e.key === 'Tab') {
+                e.preventDefault();
 
-        // Tab for indentation
-        if (e.key === 'Tab') {
-            e.preventDefault();
+                // Get the current line
+                const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+                const lineEnd = value.indexOf('\n', start);
+                const line = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd);
 
-            // Get the current line
-            const lineStart = value.lastIndexOf('\n', start - 1) + 1;
-            const lineEnd = value.indexOf('\n', start);
-            const line = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd);
+                // Check if this is a list item
+                const listMatch = line.match(/^(\s*)([-*+]|\d+\.)(\s+.*)?$/);
 
-            // Check if this is a list item
-            const listMatch = line.match(/^(\s*)([-*+]|\d+\.)(\s+.*)?$/);
-
-            if (listMatch && !e.shiftKey) {
-                // Add indentation before the list marker
-                const currentIndent = listMatch[1];
-                const marker = listMatch[2];
-                const rest = listMatch[3] || '';
-                const newIndent = currentIndent + '  ';
-                const newLine = newIndent + marker + rest;
-
-                editor.value = value.substring(0, lineStart) + newLine + value.substring(lineEnd === -1 ? value.length : lineEnd);
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                editor.dispatchEvent(new Event('input'));
-            } else if (e.shiftKey && listMatch) {
-                // Shift+Tab: Remove indentation
-                const currentIndent = listMatch[1];
-                if (currentIndent.length >= 2) {
+                if (listMatch && !e.shiftKey) {
+                    // Add indentation before the list marker
+                    const currentIndent = listMatch[1];
                     const marker = listMatch[2];
                     const rest = listMatch[3] || '';
-                    const newIndent = currentIndent.substring(2);
+                    const newIndent = currentIndent + '  ';
                     const newLine = newIndent + marker + rest;
 
                     editor.value = value.substring(0, lineStart) + newLine + value.substring(lineEnd === -1 ? value.length : lineEnd);
-                    editor.selectionStart = editor.selectionEnd = Math.max(lineStart, start - 2);
+                    editor.selectionStart = editor.selectionEnd = start + 2;
                     editor.dispatchEvent(new Event('input'));
-                }
-            } else {
-                // Regular Tab behavior for non-list lines
-                const before = value.substring(0, start);
-                const after = value.substring(end);
-                editor.value = before + '  ' + after;
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                editor.dispatchEvent(new Event('input'));
-            }
-            return;
-        }
+                } else if (e.shiftKey && listMatch) {
+                    // Shift+Tab: Remove indentation
+                    const currentIndent = listMatch[1];
+                    if (currentIndent.length >= 2) {
+                        const marker = listMatch[2];
+                        const rest = listMatch[3] || '';
+                        const newIndent = currentIndent.substring(2);
+                        const newLine = newIndent + marker + rest;
 
-        // Auto-list on Enter
-        if (e.key === 'Enter') {
-            const line = value.substring(0, start).split('\n').pop();
-            const listMatch = line.match(/^(\s*)([-*+]|(\d+)\.)(\s+)/);
-            if (listMatch) {
-                e.preventDefault();
-                const indent = listMatch[1];
-                const marker = listMatch[2];
-                const number = listMatch[3];
-                const space = listMatch[4];
-
-                // If current line is just the list marker, end the list (Obsidian style)
-                if (line.trim() === marker) {
-                    const lineStart = start - line.length;
-                    editor.value = value.substring(0, lineStart) + '\n' + value.substring(end);
-                    editor.selectionStart = editor.selectionEnd = lineStart + 1;
-                } else {
-                    let nextMarker = marker;
-                    if (number) {
-                        nextMarker = (parseInt(number, 10) + 1) + '.';
-                    }
-                    const prefix = '\n' + indent + nextMarker + space;
-                    editor.value = value.substring(0, start) + prefix + value.substring(end);
-                    editor.selectionStart = editor.selectionEnd = start + prefix.length;
-                }
-                editor.dispatchEvent(new Event('input'));
-            } else {
-                // Preserve indentation for non-list lines
-                const indentMatch = line.match(/^(\s*)$/);
-                if (indentMatch && indentMatch[1].length > 0) {
-                    // Line is only whitespace - dedent (similar to list exit behavior)
-                    e.preventDefault();
-                    const lineStart = start - line.length;
-                    editor.value = value.substring(0, lineStart) + '\n' + value.substring(end);
-                    editor.selectionStart = editor.selectionEnd = lineStart + 1;
-                    editor.dispatchEvent(new Event('input'));
-                } else {
-                    // Line has content - preserve indentation
-                    const contentIndentMatch = line.match(/^(\s+)/);
-                    if (contentIndentMatch) {
-                        e.preventDefault();
-                        const indent = contentIndentMatch[1];
-                        const prefix = '\n' + indent;
-                        editor.value = value.substring(0, start) + prefix + value.substring(end);
-                        editor.selectionStart = editor.selectionEnd = start + prefix.length;
+                        editor.value = value.substring(0, lineStart) + newLine + value.substring(lineEnd === -1 ? value.length : lineEnd);
+                        editor.selectionStart = editor.selectionEnd = Math.max(lineStart, start - 2);
                         editor.dispatchEvent(new Event('input'));
                     }
+                } else {
+                    // Regular Tab behavior for non-list lines
+                    const before = value.substring(0, start);
+                    const after = value.substring(end);
+                    editor.value = before + '  ' + after;
+                    editor.selectionStart = editor.selectionEnd = start + 2;
+                    editor.dispatchEvent(new Event('input'));
+                }
+                return;
+            }
+
+            // Auto-list on Enter
+            if (e.key === 'Enter') {
+                const line = value.substring(0, start).split('\n').pop();
+                const listMatch = line.match(/^(\s*)([-*+]|(\d+)\.)(\s+)/);
+                if (listMatch) {
+                    e.preventDefault();
+                    const indent = listMatch[1];
+                    const marker = listMatch[2];
+                    const number = listMatch[3];
+                    const space = listMatch[4];
+
+                    // If current line is just the list marker, end the list (Obsidian style)
+                    if (line.trim() === marker) {
+                        const lineStart = start - line.length;
+                        editor.value = value.substring(0, lineStart) + '\n' + value.substring(end);
+                        editor.selectionStart = editor.selectionEnd = lineStart + 1;
+                    } else {
+                        let nextMarker = marker;
+                        if (number) {
+                            nextMarker = (parseInt(number, 10) + 1) + '.';
+                        }
+                        const prefix = '\n' + indent + nextMarker + space;
+                        editor.value = value.substring(0, start) + prefix + value.substring(end);
+                        editor.selectionStart = editor.selectionEnd = start + prefix.length;
+                    }
+                    editor.dispatchEvent(new Event('input'));
+                } else {
+                    // Preserve indentation for non-list lines
+                    const indentMatch = line.match(/^(\s*)$/);
+                    if (indentMatch && indentMatch[1].length > 0) {
+                        // Line is only whitespace - dedent (similar to list exit behavior)
+                        e.preventDefault();
+                        const lineStart = start - line.length;
+                        editor.value = value.substring(0, lineStart) + '\n' + value.substring(end);
+                        editor.selectionStart = editor.selectionEnd = lineStart + 1;
+                        editor.dispatchEvent(new Event('input'));
+                    } else {
+                        // Line has content - preserve indentation
+                        const contentIndentMatch = line.match(/^(\s+)/);
+                        if (contentIndentMatch) {
+                            e.preventDefault();
+                            const indent = contentIndentMatch[1];
+                            const prefix = '\n' + indent;
+                            editor.value = value.substring(0, start) + prefix + value.substring(end);
+                            editor.selectionStart = editor.selectionEnd = start + prefix.length;
+                            editor.dispatchEvent(new Event('input'));
+                        }
+                    }
                 }
             }
-        }
 
-        // Escape to exit edit mode
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            editor.blur(); // Blur triggers the blur handler which resets UI
-            return;
-        }
-
-        // Ctrl + K for Link (with selection)
-        if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            const selection = editor.value.substring(start, end);
-            if (selection) {
-                const linkText = `[${selection}](url)`;
-                editor.setRangeText(linkText, start, end, 'select');
-                // Select "url" part
-                editor.selectionStart = start + selection.length + 3;
-                editor.selectionEnd = editor.selectionStart + 3;
-            } else {
-                const linkText = `[link text](url)`;
-                editor.setRangeText(linkText, start, end, 'select');
+            // Escape to exit edit mode
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                editor.blur(); // Blur triggers the blur handler which resets UI
+                return;
             }
-            editor.dispatchEvent(new Event('input'));
-        }
-    });
 
-    // Handle blur: save state, exit edit mode
-    editor.addEventListener('blur', () => {
+            // Ctrl + K for Link (with selection)
+            if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                const selection = editor.value.substring(start, end);
+                if (selection) {
+                    const linkText = `[${selection}](url)`;
+                    editor.setRangeText(linkText, start, end, 'select');
+                    // Select "url" part
+                    editor.selectionStart = start + selection.length + 3;
+                    editor.selectionEnd = editor.selectionStart + 3;
+                } else {
+                    const linkText = `[link text](url)`;
+                    editor.setRangeText(linkText, start, end, 'select');
+                }
+                editor.dispatchEvent(new Event('input'));
+            }
+        });
 
-        // Prevent immediate re-entry if blur caused by a click that might be a split
-        window._justFinishedEditing = true;
-        setTimeout(() => { window._justFinishedEditing = false; }, 100);
+        // Handle blur
+        editor.addEventListener('blur', () => {
+            window._justFinishedEditing = true;
+            setTimeout(() => { window._justFinishedEditing = false; }, 100);
+            container.classList.remove('is-editing');
+            editor.classList.add('hidden');
+            preview.classList.remove('hidden');
+            saveState();
+            const parentRect = container.closest('.splittable-rect');
+            if (parentRect) parentRect.focus();
+        });
 
-        container.classList.remove('is-editing');
-        editor.classList.add('hidden');
-        preview.classList.remove('hidden');
+        // Alignment toggle button
+        const alignBtn = document.createElement('button');
+        alignBtn.id = `align-btn-${node.id}`;
+        alignBtn.className = `align-text-btn`;
+        alignBtn.title = isCentered ? 'Align Left' : 'Align Center';
 
-        // Trigger save state
-        saveState();
+        const leftIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M2 9.5C2 8.94772 2.44772 8.5 3 8.5H15C15.5523 8.5 16 8.94772 16 9.5V10C16 10.5523 15.5523 11 15 11H3C2.44772 11 2 10.5523 2 10V9.5Z" fill="currentColor"/><path d="M3 17.5C2.44772 17.5 2 17.9477 2 18.5V19C2 19.5523 2.44772 20 3 20H15C15.5523 20 16 19.5523 16 19V18.5C16 17.9477 15.5523 17.5 15 17.5H3Z" fill="currentColor"/></svg>`;
+        const centerIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M5 9.5C5 8.94772 5.44772 8.5 6 8.5H18C18.5523 8.5 19 8.94772 19 9.5V10C19 10.5523 18.5523 11 18 11H6C5.44772 11 5 10.5523 5 10V9.5Z" fill="currentColor"/><path d="M6 17.5C5.44772 17.5 5 17.9477 5 18.5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V18.5C19 17.9477 18.5523 17.5 18 17.5H6Z" fill="currentColor"/></svg>`;
 
-        // Restore focus to the container div itself so we can keep keyboard navigating
-        // But we need to use the rect element, which is the container here?
-        // Actually `container` is the .rect-content div, the keyboard nav works on .splittable-rect (the parent)
-        const parentRect = container.closest('.splittable-rect');
-        if (parentRect) {
-            parentRect.focus();
-        }
-    });
+        alignBtn.innerHTML = isCentered ? leftIcon : centerIcon;
+        alignBtn.setAttribute('aria-label', isCentered ? 'Align Left' : 'Align Center');
 
-    // Alignment toggle button
-    const alignBtn = document.createElement('button');
-    alignBtn.id = `align-btn-${node.id}`;
-    alignBtn.className = 'align-text-btn';
-    alignBtn.title = isCentered ? 'Align Left' : 'Align Center';
+        alignBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleTextAlignment(node.id);
+        });
 
-    const leftIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M2 9.5C2 8.94772 2.44772 8.5 3 8.5H15C15.5523 8.5 16 8.94772 16 9.5V10C16 10.5523 15.5523 11 15 11H3C2.44772 11 2 10.5523 2 10V9.5Z" fill="currentColor"/><path d="M3 17.5C2.44772 17.5 2 17.9477 2 18.5V19C2 19.5523 2.44772 20 3 20H15C15.5523 20 16 19.5523 16 19V18.5C16 17.9477 15.5523 17.5 15 17.5H3Z" fill="currentColor"/></svg>`;
-    const centerIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 4C2.44772 4 2 4.44772 2 5V5.5C2 6.05228 2.44772 6.5 3 6.5H21C21.5523 6.5 22 6.05228 22 5.5V5C22 4.44772 21.5523 4 21 4H3Z" fill="currentColor"/><path d="M3 13C2.44772 13 2 13.4477 2 14V14.5C2 15.0523 2.44772 15.5 3 15.5H21C21.5523 15.5 22 15.0523 22 14.5V14C22 13.4477 21.5523 13 21 13H3Z" fill="currentColor"/><path d="M5 9.5C5 8.94772 5.44772 8.5 6 8.5H18C18.5523 8.5 19 8.94772 19 9.5V10C19 10.5523 18.5523 11 18 11H6C5.44772 11 5 10.5523 5 10V9.5Z" fill="currentColor"/><path d="M6 17.5C5.44772 17.5 5 17.9477 5 18.5V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V18.5C19 17.9477 18.5523 17.5 18 17.5H6Z" fill="currentColor"/></svg>`;
+        const removeBtn = document.createElement('button');
+        removeBtn.id = `remove-text-btn-${node.id}`;
+        removeBtn.className = 'remove-text-btn';
+        removeBtn.title = 'Remove text';
+        removeBtn.setAttribute('aria-label', 'Remove text');
+        removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            saveState();
+            node.text = null;
+            node.textAlign = null;
+            renderAndRestoreFocus(getCurrentPage(), node.id);
+        });
 
-    alignBtn.innerHTML = isCentered ? leftIcon : centerIcon;
-    alignBtn.setAttribute('aria-label', isCentered ? 'Align Left' : 'Align Center');
+        editorContainer.appendChild(preview);
+        editorContainer.appendChild(editor);
+        editorContainer.appendChild(alignBtn);
+        editorContainer.appendChild(removeBtn);
+    } else {
+        editorContainer.appendChild(preview);
+        // We still append editor but it's hidden, to avoid breaking structure if CSS relies on it, 
+        // though strictly we could skip it.
+        // But simpler to just append what we have.
+    }
 
-    alignBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleTextAlignment(node.id);
-    });
-
-    // Remove button
-    const removeBtn = document.createElement('button');
-    removeBtn.id = `remove-text-btn-${node.id}`;
-    removeBtn.className = 'remove-text-btn';
-    removeBtn.title = 'Remove text';
-    removeBtn.setAttribute('aria-label', 'Remove text');
-    removeBtn.innerHTML = '<span class="icon icon-delete" aria-hidden="true"></span>';
-    removeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        saveState();
-        node.text = null;
-        node.textAlign = null;
-        // Explicitly focus the rectangle container since the button is gone
-        renderAndRestoreFocus(getCurrentPage(), node.id);
-    });
-
-    editorContainer.appendChild(preview);
-    editorContainer.appendChild(editor);
-    editorContainer.appendChild(alignBtn);
-    editorContainer.appendChild(removeBtn);
     container.appendChild(editorContainer);
 }
 
