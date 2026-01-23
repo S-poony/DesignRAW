@@ -57,13 +57,10 @@ function renderSplitNode(container, node, options) {
 
     const rectA = createDOMRect(node.children[0], node.orientation);
     const rectB = createDOMRect(node.children[1], node.orientation);
-    const divider = createDOMDivider(node, rectA, rectB);
+    const divider = createDOMDivider(node, rectA, rectB, options);
 
     container.appendChild(rectA);
-    // Only append divider if controls are visible
-    if (!options.hideControls) {
-        container.appendChild(divider);
-    }
+    container.appendChild(divider);
     container.appendChild(rectB);
 
     renderNodeRecursive(rectA, node.children[0], options);
@@ -529,7 +526,7 @@ function createDOMRect(node, parentOrientation) {
     return div;
 }
 
-function createDOMDivider(parentNode, rectA, rectB) {
+function createDOMDivider(parentNode, rectA, rectB, options = {}) {
     const divider = document.createElement('div');
     divider.className = `divider no-select flex-shrink-0 ${parentNode.orientation}-divider`;
     divider.setAttribute('data-orientation', parentNode.orientation);
@@ -537,8 +534,10 @@ function createDOMDivider(parentNode, rectA, rectB) {
     divider.setAttribute('data-rect-b-id', rectB.id);
     divider.setAttribute('data-parent-id', parentNode.id);
 
-    divider.addEventListener('mousedown', startDrag);
-    divider.addEventListener('touchstart', startDrag, { passive: false });
+    if (!options.hideControls) {
+        divider.addEventListener('mousedown', startDrag);
+        divider.addEventListener('touchstart', startDrag, { passive: false });
+    }
     return divider;
 }
 
