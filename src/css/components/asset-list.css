@@ -58,7 +58,9 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
-    flex-shrink: 0;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
     transition: opacity 0.2s;
     border: 2px solid transparent;
     padding: 2px;
@@ -81,6 +83,9 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
     transition: opacity 0.2s;
 }
 
