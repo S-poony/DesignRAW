@@ -111,8 +111,7 @@
     cursor: text;
     word-break: break-word;
     overflow-wrap: break-word;
-    white-space: pre-wrap;
-    /* Preserve whitespace and line breaks while allowing wrapping */
+    /* Removed white-space: pre-wrap to allow proper margin collapsing and prevent extra newlines between blocks */
 
     /* Fix html2canvas overlapping lines */
     font-variant-ligatures: none;
@@ -127,33 +126,33 @@
 .markdown-content h1 {
     font-size: calc(var(--text-font-size-proportional) * 2.5);
     font-weight: 800;
-    margin: 0.5em 0 1em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.75) 0 calc(var(--text-font-size-proportional) * 0.25) 0;
     color: var(--header-color, var(--color-text-heading, #111827));
-    /* Nested variable fallback? Standard CSS allows it. logic: user setting > css var > fallback */
-    border-bottom: 0.06em solid var(--color-border-light, #e5e7eb);
-    padding-bottom: 0.25em;
+    /* Fixed thickness relative to base scale */
+    border-bottom: calc(var(--text-font-size-proportional) * 0.03) solid var(--color-border-light, #e5e7eb);
+    padding-bottom: calc(var(--text-font-size-proportional) * 0.2);
 }
 
 .markdown-content h2 {
     font-size: calc(var(--text-font-size-proportional) * 2);
     font-weight: 700;
-    margin: 0.5em 0 0.75em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.75) 0 calc(var(--text-font-size-proportional) * 0.25) 0;
     color: var(--header-color, var(--color-text-heading, #1f2937));
-    border-bottom: 0.03em solid var(--color-bg-light, #f3f4f6);
-    padding-bottom: 0.125em;
+    border-bottom: calc(var(--text-font-size-proportional) * 0.02) solid var(--color-bg-light, #f3f4f6);
+    padding-bottom: calc(var(--text-font-size-proportional) * 0.1);
 }
 
 .markdown-content h3 {
     font-size: calc(var(--text-font-size-proportional) * 1.75);
     font-weight: 600;
-    margin: 0.5em 0 0.5em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.75) 0 calc(var(--text-font-size-proportional) * 0.25) 0;
     color: var(--header-color, var(--color-text-main, #374151));
 }
 
 .markdown-content h4 {
     font-size: calc(var(--text-font-size-proportional) * 1.5);
     font-weight: 600;
-    margin: 0.5em 0 0.5em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.75) 0 calc(var(--text-font-size-proportional) * 0.25) 0;
     color: var(--header-color, var(--color-text-muted, #4b5563));
 }
 
@@ -161,24 +160,23 @@
 .markdown-content h6 {
     font-size: calc(var(--text-font-size-proportional) * 1.25);
     font-weight: 600;
-    margin: 0.5em 0 0.5em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.75) 0 calc(var(--text-font-size-proportional) * 0.25) 0;
     color: var(--header-color, var(--color-text-muted, #6b7280));
 }
 
 .markdown-content p {
-    margin: 0.75em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.25) 0;
 }
 
 .markdown-content ul,
 .markdown-content ol {
-    margin: 0.5em 0;
-    padding-left: 1.5em;
+    margin: calc(var(--text-font-size-proportional) * 0.25) 0 calc(var(--text-font-size-proportional) * 0.5) 0;
+    padding-left: calc(var(--text-font-size-proportional) * 1.5);
     white-space: normal;
-    /* Override pre-wrap to prevent extra spacing */
 }
 
 .markdown-content li {
-    margin: 0.1em 0;
+    margin: calc(var(--text-font-size-proportional) * 0.1) 0;
     white-space: normal;
 }
 
@@ -207,16 +205,16 @@
 }
 
 .markdown-content blockquote {
-    border-left: 0.2em solid var(--color-border, #d1d5db);
-    margin: 0 0 0.5em 0;
-    padding-left: 0.75em;
+    border-left: calc(var(--text-font-size-proportional) * 0.2) solid var(--color-border, #d1d5db);
+    margin: calc(var(--text-font-size-proportional) * 0.5) 0;
+    padding-left: calc(var(--text-font-size-proportional) * 0.75);
     color: var(--color-text-muted, #6b7280);
 }
 
 .markdown-content hr {
     border: none;
-    border-top: 0.06em solid var(--color-border-light, #e5e7eb);
-    margin: 0.75em 0;
+    border-top: calc(var(--text-font-size-proportional) * 0.05) solid var(--color-border-light, #e5e7eb);
+    margin: calc(var(--text-font-size-proportional) * 0.75) 0;
 }
 
 .markdown-content strong {
