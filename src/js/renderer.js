@@ -39,11 +39,12 @@ export function renderLayout(container, node, options = {}) {
                         const currentWidth = parseInt(style.getPropertyValue('--paper-current-width'));
                         const currentHeight = parseInt(style.getPropertyValue('--paper-current-height'));
 
-                        // Only update if the rounded value has actually changed to prevent vibration loops
-                        if (width !== currentWidth) {
+                        // Only update if the value has changed significantly to prevent vibration loops
+                        // A 2px threshold ensures stability during layout shifts or sidebar animations
+                        if (Math.abs(width - currentWidth) > 2) {
                             style.setProperty('--paper-current-width', `${width}px`);
                         }
-                        if (height !== currentHeight) {
+                        if (Math.abs(height - currentHeight) > 2) {
                             style.setProperty('--paper-current-height', `${height}px`);
                         }
                     });

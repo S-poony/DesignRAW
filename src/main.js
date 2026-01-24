@@ -156,43 +156,13 @@ function initialize() {
 
     setupShortcutsHandlers();
 
-    // Listen for layout updates to manage focus
-    // Listen for layout updates to manage focus and reset selection state
-    document.addEventListener('layoutUpdated', () => {
-        updateFocusableRects();
-        lastHoveredRectId = null;
-    });
-    document.addEventListener('stateRestored', updateFocusableRects);
+    let lastMousePos = { x: 0, y: 0 };
 
-    // Handle settings updates that require re-render (breaking circular dependency)
-    document.addEventListener('settingsUpdated', () => {
-        // We only really need to re-render if page numbers toggled, but a check is cheap
-        // For simplicity, we can just re-render or check the specific setting if we passed it in the event
-        // But settingsUpdated event currently doesn't carry detail.
-        // Let's just re-render if we suspect a change needed only for DOM-affecting settings.
-        // Actually, let's keep it simple: just re-render. It's safe.
-        const paper = document.getElementById('a4-paper');
-        if (paper) {
-            renderLayout(paper, getCurrentPage());
-        }
-    });
-
-    // Global click delegation for rectangles in the paper
-    const paper = document.getElementById('a4-paper');
-    if (paper) {
-        paper.addEventListener('click', (e) => {
-            const rect = e.target.closest('.splittable-rect[data-split-state="unsplit"]');
-            if (rect) {
-                // If the click was specifically on a sub-button like remove, let its own listener handle it
-                if (e.target.closest('button')) return;
-
-                // Call handleSplitClick which handles split logic and modifiers
-                handleSplitClick(e);
-            }
-        });
-    }
-
-    document.addEventListener('mousemove', (e) => {
+    /**
+     * Updates the hover state and focus based on coordinates
+     * Useful for recapturing hover after re-renders
+     */
+    const updateHoverAt = (x, y) => {
         try {
             // Don't steal focus if user is currently typing
             if (document.activeElement &&
@@ -202,7 +172,7 @@ function initialize() {
                 return;
             }
 
-            const elUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+            const elUnderCursor = document.elementFromPoint(x, y);
             if (!elUnderCursor) return;
 
             const paper = document.getElementById('a4-paper');
@@ -211,34 +181,65 @@ function initialize() {
             const rect = elUnderCursor.closest('.splittable-rect[data-split-state="unsplit"]');
             if (!rect) {
                 // If we are not over a leaf rect, check if we are over a divider or edge handle
-                // If we ARE over a divider/handle, we DON'T remove the hover class from the last hovered rect
-                // to allow buttons to stay visible.
                 const isInteractionLayer = elUnderCursor.closest('.divider, .edge-handle');
                 if (!isInteractionLayer) {
-                    // We are over blank paper or something else, clear hover
                     document.querySelectorAll('.is-hovered-active').forEach(el => el.classList.remove('is-hovered-active'));
                     lastHoveredRectId = null;
                 }
                 return;
             }
 
-            // Restore focus follows mouse: hover focuses the rectangle
-            if (rect.id !== lastHoveredRectId || document.activeElement !== rect) {
-                // Remove class from others
+            // Restore focus follows mouse
+            if (rect.id !== lastHoveredRectId || !rect.classList.contains('is-hovered-active')) {
                 document.querySelectorAll('.is-hovered-active').forEach(el => el.classList.remove('is-hovered-active'));
                 rect.classList.add('is-hovered-active');
-
                 rect.focus({ preventScroll: true });
                 lastHoveredRectId = rect.id;
             }
 
-            // Always update overlay based on hovered rectangle (which is now focused)
+            // Update shortcut hints
             const node = findNodeById(getCurrentPage(), rect.id);
             shortcutsOverlay.update(node);
 
         } catch (err) {
-            // Silently ignore errors
+            // Silently ignore
         }
+    };
+
+    // Listen for layout updates to manage focus and reset selection state
+    document.addEventListener('layoutUpdated', () => {
+        updateFocusableRects();
+        lastHoveredRectId = null;
+        // Recapture hover state after DOM elements were replaced
+        updateHoverAt(lastMousePos.x, lastMousePos.y);
+    });
+    document.addEventListener('stateRestored', updateFocusableRects);
+
+    // Handle settings updates that require re-render (breaking circular dependency)
+    document.addEventListener('settingsUpdated', () => {
+        const paper = document.getElementById('a4-paper');
+        if (paper) {
+            renderLayout(paper, getCurrentPage());
+            // Recapture hover state after settings change might have re-rendered the DOM
+            updateHoverAt(lastMousePos.x, lastMousePos.y);
+        }
+    });
+
+    // Global click delegation for rectangles in the paper
+    const paper = document.getElementById('a4-paper');
+    if (paper) {
+        paper.addEventListener('click', (e) => {
+            const rect = e.target.closest('.splittable-rect[data-split-state="unsplit"]');
+            if (rect) {
+                if (e.target.closest('button')) return;
+                handleSplitClick(e);
+            }
+        });
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        lastMousePos = { x: e.clientX, y: e.clientY };
+        updateHoverAt(e.clientX, e.clientY);
     });
 
     // Hide overlay when mouse leaves the paper
