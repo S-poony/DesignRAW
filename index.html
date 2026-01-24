@@ -70,7 +70,23 @@
             <div id="right-sidebars-container">
                 <!-- Sidebar for Assets and Shortcuts -->
                 <aside class="sidebar">
-                    <button id="import-assets-btn" class="btn-primary">Import Images</button>
+                    <div class="sidebar-header">
+                        <button id="import-assets-btn" class="btn-primary" title="Import Images">
+                            <span class="icon icon-add-image"></span>
+                            Import Files
+                        </button>
+                        <button id="import-folder-btn" class="btn-secondary" title="Import Folder">
+                            <span class="icon icon-folder"></span>
+                        </button>
+                        <div class="view-mode-toggle">
+                            <button id="view-grid-btn" class="view-btn active" title="Grid View">
+                                <img src="/src/assets/icons/grid.svg" alt="Grid View" width="16" height="16">
+                            </button>
+                            <button id="view-list-btn" class="view-btn" title="List View">
+                                <img src="/src/assets/icons/list.svg" alt="List View" width="16" height="16">
+                            </button>
+                        </div>
+                    </div>
                     <div id="asset-list" class="asset-list">
                         <!-- Assets will appear here -->
                     </div>

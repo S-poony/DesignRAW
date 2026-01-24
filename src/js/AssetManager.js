@@ -6,6 +6,8 @@ import { MAX_ASSET_DIMENSION, ASSET_THUMBNAIL_QUALITY, MAX_FILE_SIZE_MB } from '
  * @property {string} name
  * @property {string} lowResData
  * @property {string} fullResData
+ * @property {string} [path]
+ * @property {string} type 'image' | 'text'
  */
 
 export class AssetManager extends EventTarget {
@@ -17,9 +19,15 @@ export class AssetManager extends EventTarget {
 
     /**
      * @param {File} file 
+     * @param {string} [path] Optional relative path (for folder imports)
      * @returns {Promise<Asset>}
      */
-    async processFile(file) {
+    async processFile(file, path) {
+        // Simple text file check
+        if (file.type.startsWith('text/') || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+            return this.processTextFile(file, path);
+        }
+
         if (!file.type.startsWith('image/')) {
             throw new Error('File is not an image');
         }
@@ -66,7 +74,9 @@ export class AssetManager extends EventTarget {
                             id: crypto.randomUUID(),
                             name: file.name,
                             lowResData: lowResData,
-                            fullResData: fullResData
+                            fullResData: fullResData,
+                            path: path || file.name,
+                            type: 'image'
                         });
                     } catch (err) {
                         reject(err);
@@ -75,6 +85,24 @@ export class AssetManager extends EventTarget {
                 img.src = String(fullResData);
             };
             reader.readAsDataURL(file);
+        });
+    }
+
+    async processTextFile(file, path) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('Failed to read text file'));
+            reader.onload = (e) => {
+                resolve({
+                    id: crypto.randomUUID(),
+                    name: file.name,
+                    lowResData: null, // No thumbnail for text
+                    fullResData: e.target.result,
+                    path: path || file.name,
+                    type: 'text'
+                });
+            };
+            reader.readAsText(file);
         });
     }
 

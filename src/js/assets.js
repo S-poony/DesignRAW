@@ -10,42 +10,89 @@ import { dragDropService } from './DragDropService.js';
 // Backward compatibility for importedAssets
 export const importedAssets = assetManager.assets;
 
+// State for view mode
+let currentViewMode = 'grid'; // 'grid' | 'list'
+let collapsedFolders = new Set(); // Stores paths of collapsed folders
+
 export function setupAssetHandlers() {
     const importBtn = document.getElementById('import-assets-btn');
+    const importFolderBtn = document.getElementById('import-folder-btn');
+    const viewGridBtn = document.getElementById('view-grid-btn');
+    const viewListBtn = document.getElementById('view-list-btn');
+
     if (!importBtn) return;
 
+    // File Input for Images
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.multiple = true;
-    fileInput.accept = 'image/*';
+    fileInput.accept = 'image/*,text/*,.md,.txt';
     fileInput.style.display = 'none';
     document.body.appendChild(fileInput);
 
-    importBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
+    // Folder Input
+    const folderInput = document.createElement('input');
+    folderInput.type = 'file';
+    folderInput.webkitdirectory = true; // Enable directory selection
+    folderInput.directory = true;
+    folderInput.style.display = 'none';
+    document.body.appendChild(folderInput);
 
-    fileInput.addEventListener('change', async (e) => {
-        const files = Array.from(e.target.files);
-        for (const file of files) {
+    // -- Event Listeners --
+
+    importBtn.addEventListener('click', () => fileInput.click());
+    importFolderBtn?.addEventListener('click', () => folderInput.click());
+
+    // Handle File Selection
+    const handleFiles = async (files) => {
+        const fileArray = Array.from(files);
+        // Show loading indicator if crucial...
+
+        // Process in chunks to avoid blocking UI if huge
+        for (const file of fileArray) {
             try {
-                const asset = await assetManager.processFile(file);
+                // Provide relative path if available (webkitRelativePath)
+                const path = file.webkitRelativePath || file.name;
+                const asset = await assetManager.processFile(file, path);
                 assetManager.addAsset(asset);
             } catch (err) {
-                console.error(`Failed to process ${file.name}:`, err);
-                showAlert(`Failed to process ${file.name}: ${err.message}`, 'Import Error');
+                // Ignore non-image/text errors silently for folders mixed content
+                if (err.message !== 'File is not an image') {
+                    console.error(`Failed to process ${file.name}:`, err);
+                }
             }
         }
-        fileInput.value = ''; // Reset for next import
-    });
+        fileInput.value = '';
+        folderInput.value = '';
+    };
 
-    // Listen for asset changes to re-render
-    assetManager.addEventListener('assets:changed', () => {
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    folderInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    // View Toggles
+    viewGridBtn?.addEventListener('click', () => setViewMode('grid'));
+    viewListBtn?.addEventListener('click', () => setViewMode('list'));
+
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        viewGridBtn.classList.toggle('active', mode === 'grid');
+        viewListBtn.classList.toggle('active', mode === 'list');
         renderAssetList();
+    }
+
+    // assetManager listeners...
+    assetManager.addEventListener('assets:changed', () => {
+        // Debounce slightly if mass adding? For now direct render.
+        requestAnimationFrame(renderAssetList);
     });
 
-    // Handle dropping layout images/text back to asset list to delete them
+    // ... Existing drop handlers ...
+    setupDropHandlersForList();
+}
+
+function setupDropHandlersForList() {
     const assetList = document.getElementById('asset-list');
+    // ... (existing dragover/drop handlers kept, ensuring they work on the container) ...
     assetList.addEventListener('dragover', (e) => {
         if (dragDropService.sourceRect) {
             e.preventDefault();
@@ -76,20 +123,24 @@ export function setupAssetHandlers() {
         }
     });
 
-    // Event delegation for asset list actions
+    // Remove/Replace delegation
     assetList.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove');
         if (removeBtn) {
-            const assetId = removeBtn.closest('.asset-item').dataset.id;
+            const assetId = removeBtn.dataset.id;
             removeAsset(assetId);
             return;
         }
-
-        const replaceBtn = e.target.closest('.replace');
-        if (replaceBtn) {
-            const assetId = replaceBtn.closest('.asset-item').dataset.id;
-            replaceAsset(assetId);
-            return;
+        // Folder toggle
+        const folderHeader = e.target.closest('.list-item.is-folder');
+        if (folderHeader) {
+            const path = folderHeader.dataset.path;
+            if (collapsedFolders.has(path)) {
+                collapsedFolders.delete(path);
+            } else {
+                collapsedFolders.add(path);
+            }
+            renderAssetList();
         }
     });
 }
@@ -99,43 +150,137 @@ function renderAssetList() {
     if (!assetList) return;
 
     assetList.innerHTML = '';
-    assetManager.getAssets().forEach(asset => {
+    assetList.className = `asset-list ${currentViewMode === 'list' ? 'view-list' : ''}`;
+
+    const assets = assetManager.getAssets();
+
+    if (currentViewMode === 'grid') {
+        renderGridView(assetList, assets);
+    } else {
+        renderListView(assetList, assets);
+    }
+}
+
+function renderGridView(container, assets) {
+    const fragment = document.createDocumentFragment();
+
+    assets.forEach(asset => {
         const item = document.createElement('div');
         item.className = 'asset-item';
         item.draggable = false;
         item.dataset.id = asset.id;
+        item.title = asset.name; // Basic tooltip
 
-        // Use safe textContent and explicit attribute setting for XSS prevention
-        const img = document.createElement('img');
-        img.src = asset.lowResData;
-        img.alt = asset.name;
-        img.title = asset.name;
-        item.appendChild(img);
+        if (asset.type === 'text') {
+            item.innerHTML = '<div class="text-icon-placeholder">TXT</div>';
+        } else {
+            const img = document.createElement('img');
+            img.src = asset.lowResData;
+            img.alt = asset.name;
+            item.appendChild(img);
+        }
 
+        // Actions overlay
         const actions = document.createElement('div');
         actions.className = 'asset-actions';
-
-        const replaceBtn = document.createElement('button');
-        replaceBtn.className = 'asset-action-btn replace';
-        replaceBtn.title = 'Replace asset';
-        replaceBtn.innerHTML = '<span class="icon icon-replace"></span>';
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'asset-action-btn remove';
         removeBtn.title = 'Remove asset';
+        removeBtn.dataset.id = asset.id; // Store ID on button for delegation
         removeBtn.innerHTML = '<span class="icon icon-delete"></span>';
-
-        actions.appendChild(replaceBtn);
         actions.appendChild(removeBtn);
         item.appendChild(actions);
 
+        // Drag handler
         item.addEventListener('pointerdown', (e) => {
             if (e.button !== 0 && e.pointerType === 'mouse') return;
-            dragDropService.startDrag({ asset }, e);
+            dragDropService.startDrag({ asset: asset.type === 'image' ? asset : undefined, text: asset.type === 'text' ? asset.fullResData : undefined }, e);
         });
 
-        assetList.appendChild(item);
+        fragment.appendChild(item);
     });
+    container.appendChild(fragment);
+}
+
+function renderListView(container, assets) {
+    // Build Tree
+    const tree = { __files: [], __folders: {} }; // Initialize root with files and folders
+
+    assets.forEach(asset => {
+        const parts = (asset.path || asset.name).split('/');
+        let current = tree;
+
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            if (!current.__folders[part]) current.__folders[part] = { __files: [], __folders: {} };
+            current = current.__folders[part];
+        }
+        const fileName = parts[parts.length - 1];
+        current.__files.push({ name: fileName, asset });
+    });
+
+    // Flatten for rendering (Virtual List approach could go here for huge lists)
+    const fragment = document.createDocumentFragment();
+
+    function traverse(node, currentPath = '', level = 0) {
+        // Render Folders
+        Object.keys(node.__folders).sort().forEach(folderName => {
+            const fullPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+            const isCollapsed = collapsedFolders.has(fullPath);
+
+            const folderEl = document.createElement('div');
+            folderEl.className = 'list-item is-folder';
+            folderEl.style.setProperty('--level', level);
+            folderEl.dataset.path = fullPath;
+
+            folderEl.innerHTML = `
+                <span class="list-icon">
+                    <svg class="folder-caret ${isCollapsed ? '' : 'expanded'}" viewBox="0 0 10 10" fill="currentColor">
+                        <path d="M3 2L7 5L3 8V2Z" />
+                    </svg>
+                    📁
+                </span>
+                <span class="list-text" title="${fullPath}">${folderName}</span>
+            `;
+            fragment.appendChild(folderEl);
+
+            if (!isCollapsed) {
+                traverse(node.__folders[folderName], fullPath, level + 1);
+            }
+        });
+
+        // Render Files
+        node.__files.sort((a, b) => a.name.localeCompare(b.name)).forEach(({ name, asset }) => {
+            const fileEl = document.createElement('div');
+            fileEl.className = 'list-item is-file';
+            fileEl.style.setProperty('--level', level);
+
+            const icon = asset.type === 'text' ? '📄' : '🖼️';
+
+            fileEl.innerHTML = `
+                <span class="list-icon">${icon}</span>
+                <span class="list-text" title="${name}">${name}</span>
+                <button class="asset-action-btn remove small" data-id="${asset.id}" title="Remove" style="margin-left: auto;">
+                    <span class="icon icon-delete"></span>
+                </button>
+             `;
+
+            // Drag handler for list item
+            fileEl.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('.remove')) return; // Ignore delete button
+                if (e.button !== 0 && e.pointerType === 'mouse') return;
+                dragDropService.startDrag({ asset: asset.type === 'image' ? asset : undefined, text: asset.type === 'text' ? asset.fullResData : undefined }, e);
+            });
+
+            fragment.appendChild(fileEl);
+        });
+    }
+
+    // Handle root files if any (structure slightly varies based on split logic above)
+    // Root logic: 'tree' itself behaves like a folder node.
+    traverse(tree);
+    container.appendChild(fragment);
 }
 
 function updateDragFeedback(target) {
