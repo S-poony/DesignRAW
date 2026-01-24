@@ -7,9 +7,12 @@
 .align-text-btn,
 .flip-image-btn,
 .import-image-btn {
+    --btn-size: calc(var(--paper-scale-ref, 1000px) * 0.035);
+    --btn-offset: calc(var(--paper-scale-ref, 1000px) * 0.01);
+
     position: absolute;
-    width: 32px;
-    height: 32px;
+    width: var(--btn-size);
+    height: var(--btn-size);
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--color-border, #d1d5db);
@@ -39,18 +42,19 @@
 .align-text-btn svg,
 .flip-image-btn svg,
 .import-image-btn svg {
-    width: 20px;
-    height: 20px;
+    width: calc(var(--paper-scale-ref, 1000px) * 0.022);
+    height: calc(var(--paper-scale-ref, 1000px) * 0.022);
 }
 
 /* Image controls container buttons should not be absolute */
 .image-controls,
 .empty-node-controls {
+    --btn-offset: calc(var(--paper-scale-ref, 1000px) * 0.01);
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: var(--btn-offset);
+    right: var(--btn-offset);
     display: none;
-    gap: 4px;
+    gap: calc(var(--btn-offset) * 0.5);
     z-index: 20;
     transition: opacity 0.2s;
 }
@@ -70,8 +74,8 @@
 .btn-remove,
 .remove-image-btn,
 .remove-text-btn {
-    top: 8px;
-    right: 8px;
+    top: var(--btn-offset);
+    right: var(--btn-offset);
 }
 
 /* Top-Right: Align/Edit Button (offset to the left of remove) */
@@ -79,14 +83,14 @@
 .align-text-btn,
 .flip-image-btn,
 .import-image-btn {
-    top: 8px;
-    right: 48px;
+    top: var(--btn-offset);
+    right: calc(var(--btn-offset) * 2 + var(--btn-size));
     /* Different hover color for non-destructive actions */
     color: var(--color-primary, #4f46e5);
 }
 
 .import-image-btn {
-    right: 8px;
+    right: var(--btn-offset);
     /* Position single button in corner */
 }
 
