@@ -102,7 +102,7 @@ function renderAssetList() {
     assetManager.getAssets().forEach(asset => {
         const item = document.createElement('div');
         item.className = 'asset-item';
-        item.draggable = true;
+        item.draggable = false;
         item.dataset.id = asset.id;
 
         // Use safe textContent and explicit attribute setting for XSS prevention
@@ -129,13 +129,10 @@ function renderAssetList() {
         actions.appendChild(removeBtn);
         item.appendChild(actions);
 
-        item.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', asset.id);
-            dragDropService.startDrag({ asset });
-        });
-
-        item.addEventListener('dragend', () => {
-            dragDropService.endDrag();
+        item.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only left click
+            e.preventDefault();
+            dragDropService.startDrag({ asset }, e);
         });
 
         // Touch support using service
@@ -367,14 +364,11 @@ export async function importImageToNode(nodeId) {
 }
 
 export function attachImageDragHandlers(img, asset, hostRectElement) {
-    img.draggable = true;
-    img.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', asset.id);
-        dragDropService.startDrag({ asset, sourceRect: hostRectElement });
-    });
-
-    img.addEventListener('dragend', () => {
-        dragDropService.endDrag();
+    img.draggable = false;
+    img.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        dragDropService.startDrag({ asset, sourceRect: hostRectElement }, e);
     });
 
     // Touch support
@@ -390,7 +384,19 @@ export function setupDropHandlers() {
     const paper = document.getElementById(A4_PAPER_ID);
     if (!paper) return;
 
+    // Handle custom drops (mouse)
+    document.addEventListener('custom-drop', (e) => {
+        handleDropLogic(e.detail.target);
+    });
+
+    // Handle custom drag moves for feedback (mouse/touch)
+    document.addEventListener('custom-drag-move', (e) => {
+        updateDragFeedback(e.detail.target);
+    });
+
     paper.addEventListener('dragover', (e) => {
+        // Native dragover still useful for traditional file imports if needed, 
+        // but for internal drags we use our service.
         const targetElement = e.target.closest('.splittable-rect');
         if (targetElement) {
             const node = findNodeById(getCurrentPage(), targetElement.id);

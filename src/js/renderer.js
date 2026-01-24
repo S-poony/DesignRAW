@@ -292,12 +292,10 @@ function renderTextContent(container, node, startInEditMode = false, options = {
         // ... (other listeners)
 
         // Drag preview
-        preview.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', 'text-content');
-            dragDropService.startDrag({ text: node.text, textAlign: node.textAlign, sourceRect: container, sourceTextNode: node });
-        });
-        preview.addEventListener('dragend', () => {
-            dragDropService.endDrag();
+        preview.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            dragDropService.startDrag({ text: node.text, textAlign: node.textAlign, sourceRect: container, sourceTextNode: node }, e);
         });
 
         // Touch support

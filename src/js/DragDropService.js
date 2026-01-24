@@ -23,14 +23,14 @@ export class DragDropService {
         this.sourceTextNode = null;
         /** @type {string|undefined} */
         this.draggedTextAlign = undefined;
-        /** @type {HTMLElement|null} */
-        this.touchGhost = null;
-        /** @type {number|null} Timer for touch hold delay */
-        this.touchHoldTimer = null;
-        /** @type {DragData|null} Pending drag data waiting for hold completion */
-        this.pendingTouchData = null;
-        /** @type {Touch|null} Pending touch waiting for hold completion */
-        this.pendingTouch = null;
+        /** @type {Touch|null} Current active touch if any */
+        this.activeTouch = null;
+        /** @type {boolean} Whether we are currently in a drag operation */
+        this.dragging = false;
+
+        // Global mouse handlers for immediate drag
+        this.onMouseMove = this.onMouseMove.bind(this);
+        this.onMouseUp = this.onMouseUp.bind(this);
 
         // Cleanup on page visibility change to prevent ghost leaks
         document.addEventListener('visibilitychange', () => {
@@ -42,8 +42,9 @@ export class DragDropService {
 
     /**
      * @param {DragData} data 
+     * @param {MouseEvent|Touch} event
      */
-    startDrag(data) {
+    startDrag(data, event) {
         this.draggedAsset = data.asset || null;
         this.draggedText = data.text !== undefined ? data.text : undefined;
         this.draggedPageIndex = data.pageIndex !== undefined ? data.pageIndex : undefined;
@@ -51,8 +52,19 @@ export class DragDropService {
         this.sourceTextNode = data.sourceTextNode || null;
         this.draggedTextAlign = data.textAlign || undefined;
 
+        this.dragging = true;
+
         if (this.sourceRect) {
             this.sourceRect.classList.add(this.draggedAsset ? 'moving-image' : 'moving-text');
+        }
+
+        // Create ghost immediately
+        this.createGhost(event, data);
+
+        // Add document-level listeners for mouse if no touch
+        if (!(window.Touch && event instanceof Touch)) {
+            document.addEventListener('mousemove', this.onMouseMove);
+            document.addEventListener('mouseup', this.onMouseUp);
         }
     }
 
@@ -61,45 +73,45 @@ export class DragDropService {
      * @param {DragData} data 
      */
     startTouchDrag(e, data) {
-        // Cancel any pending drag
-        if (this.touchHoldTimer) {
-            clearTimeout(this.touchHoldTimer);
-            this.touchHoldTimer = null;
-        }
-
-        // Store the pending drag data
-        this.pendingTouchData = data;
-        this.pendingTouch = e.touches && e.touches.length > 0 ? e.touches[0] : null;
-
-        // Require holding for 200ms before starting drag
-        this.touchHoldTimer = setTimeout(() => {
-            if (this.pendingTouchData && this.pendingTouch) {
-                this.startDrag(this.pendingTouchData);
-                this.createGhost(this.pendingTouch, this.pendingTouchData);
-            }
-            this.touchHoldTimer = null;
-            this.pendingTouchData = null;
-            this.pendingTouch = null;
-        }, 200);
-    }
-
-    /**
-     * Cancel pending touch drag if touch ends before hold completes
-     */
-    cancelPendingTouch() {
-        if (this.touchHoldTimer) {
-            clearTimeout(this.touchHoldTimer);
-            this.touchHoldTimer = null;
-            this.pendingTouchData = null;
-            this.pendingTouch = null;
+        if (e.touches && e.touches.length > 0) {
+            this.activeTouch = e.touches[0];
+            this.startDrag(data, this.activeTouch);
         }
     }
 
+    onMouseMove(e) {
+        if (!this.dragging) return;
+        this.updateGhostPosition(e.clientX, e.clientY);
+
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        document.dispatchEvent(new CustomEvent('custom-drag-move', {
+            detail: { target, x: e.clientX, y: e.clientY }
+        }));
+    }
+
+    onMouseUp(e) {
+        if (!this.dragging) return;
+
+        // Find target element before ending drag
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+
+        // We'll need a way to trigger the drop logic. 
+        // Typically assets.js or main.js will call endDrag() and then handle the result.
+        // But for mouse up to work globally, we might need a custom event or a callback.
+        // For now, let's dispatch a custom drop event that other services can listen to.
+        const dropEvent = new CustomEvent('custom-drop', {
+            detail: { target, clientX: e.clientX, clientY: e.clientY }
+        });
+        document.dispatchEvent(dropEvent);
+
+        this.endDrag();
+    }
+
     /**
-     * @param {Touch} touch 
+     * @param {MouseEvent|Touch} e 
      * @param {DragData} data 
      */
-    createGhost(touch, data) {
+    createGhost(e, data) {
         if (this.touchGhost) this.touchGhost.remove();
 
         const ghost = document.createElement('div');
@@ -108,15 +120,16 @@ export class DragDropService {
         ghost.style.width = `${GHOST_SIZE}px`;
         ghost.style.height = `${GHOST_SIZE}px`;
         ghost.style.pointerEvents = 'none';
-        ghost.style.zIndex = '10000';
+        ghost.style.zIndex = '100000'; // Even higher
         ghost.style.opacity = '0.8';
         ghost.style.borderRadius = '8px';
-        ghost.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
-        ghost.style.border = '2px solid #4f46e5';
+        ghost.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)';
+        ghost.style.border = '2px solid var(--color-primary, #4f46e5)';
         ghost.style.display = 'flex';
         ghost.style.alignItems = 'center';
         ghost.style.justifyContent = 'center';
         ghost.style.backgroundColor = 'white';
+        ghost.style.transition = 'transform 0.05s linear'; // Smoother movement
 
         if (data.asset) {
             const img = document.createElement('img');
@@ -134,41 +147,48 @@ export class DragDropService {
             ghost.style.fontSize = '24px';
         }
 
-        ghost.style.left = `${touch.clientX - GHOST_SIZE / 2}px`;
-        ghost.style.top = `${touch.clientY - GHOST_SIZE / 2}px`;
+        this.updateGhostPosition(e.clientX, e.clientY, ghost);
 
         document.body.appendChild(ghost);
         this.touchGhost = ghost;
+    }
+
+    updateGhostPosition(x, y, ghost = this.touchGhost) {
+        if (!ghost) return;
+        ghost.style.left = `${x - GHOST_SIZE / 2}px`;
+        ghost.style.top = `${y - GHOST_SIZE / 2}px`;
     }
 
     /**
      * @param {TouchEvent} e 
      */
     handleTouchMove(e) {
-        // If we're still waiting for hold, cancel the pending drag  
-        if (this.touchHoldTimer) {
-            this.cancelPendingTouch();
-            return;
-        }
-
-        if (!this.isDragging() || !this.touchGhost) return;
-        if (e.cancelable) e.preventDefault();
+        if (!this.dragging || !this.touchGhost) return;
 
         const touch = e.touches && e.touches.length > 0 ? e.touches[0] : null;
         if (!touch) return;
-        this.touchGhost.style.left = `${touch.clientX - GHOST_SIZE / 2}px`;
-        this.touchGhost.style.top = `${touch.clientY - GHOST_SIZE / 2}px`;
+
+        if (e.cancelable) e.preventDefault();
+
+        this.updateGhostPosition(touch.clientX, touch.clientY);
+
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        document.dispatchEvent(new CustomEvent('custom-drag-move', {
+            detail: { target, x: touch.clientX, y: touch.clientY }
+        }));
 
         return {
             x: touch.clientX,
             y: touch.clientY,
-            target: document.elementFromPoint(touch.clientX, touch.clientY)
+            target: target
         };
     }
 
     endDrag() {
-        // Cancel any pending touch drag
-        this.cancelPendingTouch();
+        this.dragging = false;
+
+        document.removeEventListener('mousemove', this.onMouseMove);
+        document.removeEventListener('mouseup', this.onMouseUp);
 
         if (this.sourceRect) {
             this.sourceRect.classList.remove('moving-image', 'moving-text');
@@ -196,7 +216,7 @@ export class DragDropService {
     }
 
     isDragging() {
-        return this.draggedAsset !== null || this.draggedText !== undefined || this.draggedPageIndex !== undefined;
+        return this.dragging;
     }
 }
 
