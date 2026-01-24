@@ -20,7 +20,6 @@
 `shift + click` = split to Target A *(left or top)*
 `ctrl + shift + click` = split to Target B *(right or bottom)*
 `Alt + click` = long split
-`Alt + Space` = long split *(Electron only)*
 `ctrl + shift + alt + click` = long split to target B
 
 ***
@@ -28,6 +27,7 @@
 ### Electron App
 
 `ctrl + i` = import folder *(when not editing text)*
+`Alt + Space` = long split
 
 ***
 
