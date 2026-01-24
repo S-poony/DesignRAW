@@ -19,7 +19,6 @@
 
 @media (max-width: 1024px) {
     .asset-grid {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         display: flex;
         flex-direction: row;
         overflow-x: auto;
@@ -27,6 +26,17 @@
         width: 100%;
         order: 10;
         /* Ensure it moves to bottom on mobile */
+    }
+
+    .asset-grid .asset-item {
+        min-width: 80px;
+        max-width: 120px;
+        flex: 0 0 100px;
+        /* Prefer 100px width, don't grow or shrink */
+        width: 100px;
+        /* Fallback */
+        aspect-ratio: 1;
+        /* Maintain squareness */
     }
 }
 
