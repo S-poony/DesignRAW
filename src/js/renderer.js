@@ -148,6 +148,17 @@ function renderLeafNode(container, node, options) {
                     img.style.transform = 'scaleX(-1)';
                 }
 
+                // If the asset is broken, show a warning overlay
+                if (asset.isBroken) {
+                    const brokenCover = document.createElement('div');
+                    brokenCover.className = 'broken-asset-placeholder';
+                    brokenCover.innerHTML = `
+                        <div class="icon icon-warning"></div>
+                        <span>Missing File</span>
+                    `;
+                    container.appendChild(brokenCover);
+                }
+
                 container.appendChild(img);
 
                 if (!options.hideControls) {

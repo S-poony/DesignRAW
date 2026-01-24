@@ -196,6 +196,40 @@ export class AssetManager extends EventTarget {
     }
 
     /**
+     * Reconstructs lowResData (thumbnail) for an asset from its local path.
+     * Useful for Electron reference mode where thumbnails aren't saved to JSON.
+     * @param {Asset} asset 
+     */
+    async rehydrateAsset(asset) {
+        if (!asset.isReference || !asset.absolutePath) return;
+
+        try {
+            // Fetch via our custom broco-local protocol
+            const url = `broco-local://${encodeURIComponent(asset.absolutePath)}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('File not found');
+
+            const blob = await response.blob();
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+
+            const lowResData = await this._createThumbnail(dataUrl);
+            this.updateAsset(asset.id, {
+                lowResData,
+                fullResData: null, // Keep it null/reference
+                isBroken: false
+            });
+        } catch (err) {
+            console.warn(`Could not rehydrate asset: ${asset.name} at ${asset.absolutePath}`, err);
+            this.updateAsset(asset.id, { isBroken: true });
+        }
+    }
+
+    /**
      * @param {string} id 
      * @returns {Asset|undefined}
      */

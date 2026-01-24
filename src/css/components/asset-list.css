@@ -278,3 +278,4 @@
     height: 20px;
     padding: 0;
 }
+.asset-item.is-broken, .list-item.is-broken { border-color: var(--color-danger, #ef4444) !important; background-color: #fef2f2 !important; } .broken-link-icon { width: 24px; height: 24px; background-color: var(--color-danger, #ef4444); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); } .list-item.is-broken .list-text { color: var(--color-danger, #ef4444); }

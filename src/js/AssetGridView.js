@@ -60,11 +60,19 @@ export class AssetGridView {
             txtBox.textContent = 'TXT';
             element.appendChild(txtBox);
         } else {
-            const img = document.createElement('img');
-            img.src = asset.lowResData;
-            img.alt = asset.name;
-            img.loading = 'lazy';
-            element.appendChild(img);
+            if (asset.isBroken) {
+                element.classList.add('is-broken');
+                element.title = `Missing file: ${asset.absolutePath}`;
+                const warningIcon = document.createElement('div');
+                warningIcon.className = 'broken-link-icon icon icon-warning';
+                element.appendChild(warningIcon);
+            } else {
+                const img = document.createElement('img');
+                img.src = asset.lowResData;
+                img.alt = asset.name;
+                img.loading = 'lazy';
+                element.appendChild(img);
+            }
         }
 
         const actions = document.createElement('div');

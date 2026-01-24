@@ -18,8 +18,9 @@ export function saveLayout() {
         currentId: state.currentId,
         assets: assetManager.getAssets().map(asset => ({
             ...asset,
-            // Ensure fullResData is stripped if it's a reference to save space
-            fullResData: asset.isReference ? null : asset.fullResData
+            // Strip image data if it's a reference to keep JSON tiny
+            fullResData: asset.isReference ? null : asset.fullResData,
+            lowResData: asset.isReference ? null : asset.lowResData
         })),
         settings: exportSettings()
     };
@@ -69,6 +70,10 @@ export async function openLayout() {
                 assetManager.dispose();
                 data.assets.forEach(asset => {
                     assetManager.addAsset(asset);
+                    // If it's a reference without a thumbnail, try to rehydrate it
+                    if (asset.isReference && !asset.lowResData) {
+                        assetManager.rehydrateAsset(asset);
+                    }
                 });
 
                 // Restore state

@@ -254,6 +254,10 @@ export function setupAssetHandlers() {
             listView.refresh();
         } else {
             refreshAllViews();
+            if (type === 'updated') {
+                const paper = document.getElementById(A4_PAPER_ID);
+                if (paper) renderLayout(paper, getCurrentPage());
+            }
         }
     });
 

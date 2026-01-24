@@ -83,9 +83,14 @@ export class AssetListView {
 
         node.__files.sort((a, b) => a.name.localeCompare(b.name)).forEach(({ name, asset }) => {
             const fileEl = document.createElement('div');
-            fileEl.className = 'list-item is-file';
+            fileEl.className = `list-item is-file ${asset.isBroken ? 'is-broken' : ''}`;
             fileEl.style.setProperty('--level', level);
-            const icon = asset.type === 'text' ? '📄' : '🖼️';
+
+            let icon = asset.type === 'text' ? '📄' : '🖼️';
+            if (asset.isBroken) {
+                icon = '<span class="icon icon-warning color-danger"></span>';
+                fileEl.title = `Missing file: ${asset.absolutePath}`;
+            }
 
             fileEl.innerHTML = `
                 <span class="list-icon">${icon}</span>
