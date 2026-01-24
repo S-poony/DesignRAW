@@ -1,7 +1,10 @@
 .a4-paper {
     /* Proportional Sizing Variables */
-    --divider-thickness: max(1px, calc(var(--paper-current-width, 1000px) * var(--divider-ratio, 0.005)));
+    --divider-thickness: calc(var(--paper-current-width, 1000px) * var(--divider-ratio, 0.005));
+    /* Hit area remains clickable even if divider is 0px */
+    --divider-hit-thickness: max(12px, var(--divider-thickness));
     --layout-border-actual: calc(var(--show-borders, 1) * var(--divider-thickness));
+    --text-font-size-proportional: calc(var(--paper-current-width, 1000px) * var(--text-ratio, 0.02));
 
     /* Responsive Scaling: Fit container with 20px margin on all sides */
     width: min(calc(100cqw - 40px), calc((100cqh - 40px) * var(--ratio, 0.707)));
@@ -57,15 +60,15 @@
 .vertical-divider::after {
     top: 0;
     bottom: 0;
-    left: -20px;
-    right: -20px;
+    left: calc(var(--divider-hit-thickness) * -1.5);
+    right: calc(var(--divider-hit-thickness) * -1.5);
 }
 
 .horizontal-divider::after {
     left: 0;
     right: 0;
-    top: -20px;
-    bottom: -20px;
+    top: calc(var(--divider-hit-thickness) * -1.5);
+    bottom: calc(var(--divider-hit-thickness) * -1.5);
 }
 
 .divider:hover {

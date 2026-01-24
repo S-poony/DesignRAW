@@ -109,6 +109,7 @@ export function applySettings() {
     // Text settings
     root.style.setProperty('--text-font-family', settings.text.fontFamily);
     root.style.setProperty('--text-font-size', `${settings.text.fontSize}px`);
+    root.style.setProperty('--text-ratio', (settings.text.fontSize / 1000).toString());
     root.style.setProperty('--text-color', settings.text.textColor);
 
     // Header color logic

@@ -67,7 +67,7 @@
     border: none;
     outline: none;
     font-family: var(--text-font-family, inherit);
-    font-size: var(--text-font-size, 0.875rem);
+    font-size: var(--text-font-size-proportional, 0.875rem);
     color: var(--text-color, inherit);
     line-height: 1.5;
     resize: none;
@@ -105,7 +105,7 @@
     overflow-x: hidden;
     box-sizing: border-box;
     font-family: var(--text-font-family, sans-serif);
-    font-size: var(--text-font-size, 0.875rem);
+    font-size: var(--text-font-size-proportional, 0.875rem);
     color: var(--text-color, inherit);
     line-height: 1.6;
     cursor: text;
@@ -125,7 +125,7 @@
 }
 
 .markdown-content h1 {
-    font-size: 2rem;
+    font-size: calc(var(--text-font-size-proportional) * 2.5);
     font-weight: 800;
     margin: 0.5rem 0 1rem 0;
     color: var(--header-color, var(--color-text-heading, #111827));
@@ -135,7 +135,7 @@
 }
 
 .markdown-content h2 {
-    font-size: 1.5rem;
+    font-size: calc(var(--text-font-size-proportional) * 2);
     font-weight: 700;
     margin: 0.5rem 0 0.75rem 0;
     color: var(--header-color, var(--color-text-heading, #1f2937));
@@ -144,14 +144,14 @@
 }
 
 .markdown-content h3 {
-    font-size: 1.25rem;
+    font-size: calc(var(--text-font-size-proportional) * 1.75);
     font-weight: 600;
     margin: 0.5rem 0 0.5rem 0;
     color: var(--header-color, var(--color-text-main, #374151));
 }
 
 .markdown-content h4 {
-    font-size: 1.1rem;
+    font-size: calc(var(--text-font-size-proportional) * 1.5);
     font-weight: 600;
     margin: 0.5rem 0 0.5rem 0;
     color: var(--header-color, var(--color-text-muted, #4b5563));
@@ -159,7 +159,7 @@
 
 .markdown-content h5,
 .markdown-content h6 {
-    font-size: 1rem;
+    font-size: calc(var(--text-font-size-proportional) * 1.25);
     font-weight: 600;
     margin: 0.5rem 0 0.5rem 0;
     color: var(--header-color, var(--color-text-muted, #6b7280));
