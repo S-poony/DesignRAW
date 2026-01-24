@@ -32,7 +32,9 @@ export function renderLayout(container, node, options = {}) {
             const observer = new ResizeObserver(entries => {
                 for (let entry of entries) {
                     const width = entry.contentRect.width;
-                    entry.target.style.setProperty('--paper-current-width', `${width}px`);
+                    requestAnimationFrame(() => {
+                        entry.target.style.setProperty('--paper-current-width', `${width}px`);
+                    });
                 }
             });
             observer.observe(container);

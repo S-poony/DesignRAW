@@ -1,7 +1,7 @@
 .a4-paper {
     /* Proportional Sizing Variables */
-    --divider-thickness: calc(var(--paper-current-width, 1000px) * var(--divider-ratio, 0.005));
-    --layout-border-actual: calc(var(--paper-current-width, 1000px) * (var(--divider-ratio, 0.005)));
+    --divider-thickness: max(1px, calc(var(--paper-current-width, 1000px) * var(--divider-ratio, 0.005)));
+    --layout-border-actual: calc(var(--show-borders, 1) * var(--divider-thickness));
 
     /* Responsive Scaling: Fit container with 20px margin on all sides */
     width: min(calc(100cqw - 40px), calc((100cqh - 40px) * var(--ratio, 0.707)));
@@ -13,8 +13,8 @@
     /* Box Styles */
     box-shadow: var(--shadow-paper, 0 10px 25px rgba(0, 0, 0, 0.2));
     background-color: var(--paper-bg-color, white);
-    /* Border now scales: either the proportional width or 1px as fallback/minimum */
-    border: var(--layout-border-width, 1px) solid var(--divider-color, #d1d5db);
+    /* Border now scales: either the proportional width or 0px if hidden */
+    border: var(--layout-border-actual) solid var(--divider-color, #d1d5db);
     overflow: hidden;
     position: relative;
     display: flex;

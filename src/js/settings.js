@@ -131,11 +131,7 @@ export function applySettings() {
     root.style.setProperty('--divider-color', settings.dividers.color);
 
     // Layout border settings
-    if (settings.dividers.showBorders) {
-        root.style.setProperty('--layout-border-width', 'var(--divider-thickness)');
-    } else {
-        root.style.setProperty('--layout-border-width', '1px');
-    }
+    root.style.setProperty('--show-borders', settings.dividers.showBorders ? '1' : '0');
 }
 
 /**
