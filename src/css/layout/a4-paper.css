@@ -46,6 +46,7 @@
     flex-grow: 0;
     box-sizing: border-box;
     position: relative;
+    z-index: 5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -182,7 +183,13 @@
     min-width: 0;
     min-height: 0;
     position: relative;
+    z-index: 10;
     /* For absolutely positioned elements inside */
+}
+
+/* Priority for hovered rectangles so buttons work over hitboxes */
+.splittable-rect:hover:not(.is-editing) {
+    z-index: 60;
 }
 
 /* Visual styling for generated rectangles */
@@ -193,6 +200,7 @@
     font-weight: 500;
     cursor: pointer;
     position: relative;
+    z-index: 1;
     transition: background-color 0.15s ease-in-out;
 }
 

@@ -22,7 +22,7 @@
     /* Hidden by default, shown on hover of parent */
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    z-index: 60;
     transition: all 0.2s;
     padding: 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -55,7 +55,7 @@
     right: var(--btn-offset);
     display: none;
     gap: calc(var(--btn-offset) * 0.5);
-    z-index: 20;
+    z-index: 70;
     transition: opacity 0.2s;
 }
 
