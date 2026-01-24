@@ -220,6 +220,8 @@
     cursor: grab;
     transition: transform 0.1s;
     position: relative;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .asset-item:hover .asset-actions {

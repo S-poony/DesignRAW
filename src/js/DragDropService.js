@@ -104,6 +104,9 @@ export class DragDropService {
 
             if (distance > threshold) {
                 this.dragging = true;
+                // Clear any selection range that might have started during threshold movement
+                window.getSelection()?.removeAllRanges();
+
                 if (this.sourceRect) {
                     this.sourceRect.classList.add(this.draggedAsset ? 'moving-image' : 'moving-text');
                 }
