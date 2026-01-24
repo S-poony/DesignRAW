@@ -10,6 +10,22 @@ import { showConfirm } from './utils.js';
 export function setupKeyboardNavigation() {
     // Use capture phase to ensure we intercept shortcuts before browser/default behaviors
     document.addEventListener('keydown', handleKeyDown, true);
+
+    // Electron-specific IPC shortcut listener
+    if (window.electronAPI && window.electronAPI.onLongSplit) {
+        window.electronAPI.onLongSplit(() => {
+            const focused = document.activeElement;
+            if (focused && focused.classList.contains('splittable-rect')) {
+                const clickEvent = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    altKey: true,
+                    view: window
+                });
+                focused.dispatchEvent(clickEvent);
+            }
+        });
+    }
 }
 
 /**
@@ -30,8 +46,18 @@ function handleKeyDown(e) {
 
     // Check code for Space to avoid layout issues/modifiers changing key
     if (e.code === 'Space') {
-        // Removed Alt+Space shortcuts due to Windows conflicts
-        if (e.altKey) return;
+        const isElectron = (window.electronAPI && window.electronAPI.isElectron) || /Electron/i.test(navigator.userAgent);
+
+        // Block Alt+Space in non-Electron (browser)
+        // In Electron, Alt+Space is now handled via IPC in setupKeyboardNavigation
+        // to block the Windows system menu. Normal Space/Shift+Space/Ctrl+Space are handled here.
+        if (e.altKey) {
+            if (!isElectron) return;
+            // If we are in Electron and Alt is pressed, we expect the IPC to handle it
+            // but we still e.preventDefault() to be safe if it leaked through (it shouldn't)
+            e.preventDefault();
+            return;
+        }
 
         e.preventDefault();
         e.stopPropagation();
@@ -40,8 +66,8 @@ function handleKeyDown(e) {
             bubbles: true,
             cancelable: true,
             shiftKey: e.shiftKey,
-            ctrlKey: e.ctrlKey, // Keep Ctrl if used
-            altKey: false,     // Explicitly false since we abort on Alt
+            ctrlKey: e.ctrlKey,
+            altKey: false, // Alt should be false here, as Alt+Space is handled by IPC
             metaKey: e.metaKey,
             view: window
         });

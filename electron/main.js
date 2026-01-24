@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, dialog, ipcMain, globalShortcut } from 'electron';
 import { join, dirname, relative, basename } from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -46,6 +46,20 @@ function createWindow() {
         return { action: 'deny' };
     });
 
+    // Handle focus/blur to register Alt+Space shortcut only when active
+    // This allows us to override the Windows system menu reliably
+    mainWindow.on('focus', () => {
+        globalShortcut.register('Alt+Space', () => {
+            if (mainWindow) {
+                mainWindow.webContents.send('shortcut:long-split');
+            }
+        });
+    });
+
+    mainWindow.on('blur', () => {
+        globalShortcut.unregister('Alt+Space');
+    });
+
     // Check for updates once window is ready
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
@@ -61,6 +75,11 @@ app.whenReady().then(() => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
         }
+    });
+
+    // Ensure shortcuts are cleaned up on quit
+    app.on('will-quit', () => {
+        globalShortcut.unregisterAll();
     });
 
     // Handle Asset Picker

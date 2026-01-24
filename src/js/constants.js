@@ -97,5 +97,23 @@ export const SHORTCUTS = [
         label: 'Navigate',
         group: 'Navigation',
         condition: () => true
+    },
+
+    // --- Electron Shortcuts ---
+    {
+        keys: ['Alt', 'Space'],
+        label: 'Long Split',
+        group: 'Electron Shortcuts',
+        // Available for all splittable rects in Electron
+        condition: (node) => {
+            const isElectron = (window.electronAPI && window.electronAPI.isElectron) || /Electron/i.test(navigator.userAgent);
+            return isElectron;
+        }
+    },
+    {
+        keys: ['Ctrl', 'I'],
+        label: 'Import Folder',
+        group: 'Electron Shortcuts',
+        condition: () => false // Hidden from layout-specific context hints
     }
 ];
