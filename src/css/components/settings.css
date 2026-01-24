@@ -131,7 +131,8 @@
     flex-direction: column;
 }
 
-.settings-sections {
+.settings-sections,
+.shortcuts-content {
     flex: 1;
     overflow-y: auto;
     padding-right: 0.5rem;
