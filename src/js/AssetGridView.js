@@ -77,11 +77,21 @@ export class AssetGridView {
 
         const actions = document.createElement('div');
         actions.className = 'asset-actions';
+
+        const replaceBtn = document.createElement('button');
+        replaceBtn.className = 'asset-action-btn replace';
+        replaceBtn.dataset.id = asset.id;
+        replaceBtn.title = 'Replace Asset';
+        replaceBtn.innerHTML = '<span class="icon icon-replace"></span>';
+        actions.appendChild(replaceBtn);
+
         const removeBtn = document.createElement('button');
         removeBtn.className = 'asset-action-btn remove';
         removeBtn.dataset.id = asset.id;
+        removeBtn.title = 'Remove Asset';
         removeBtn.innerHTML = '<span class="icon icon-delete"></span>';
         actions.appendChild(removeBtn);
+
         element.appendChild(actions);
     }
 }

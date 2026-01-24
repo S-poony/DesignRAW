@@ -155,6 +155,7 @@ function renderLeafNode(container, node, options) {
                     brokenCover.innerHTML = `
                         <div class="icon icon-warning"></div>
                         <span>Missing File</span>
+                        <button class="btn-primary btn-mini replace-broken-btn" data-id="${asset.id}">Replace...</button>
                     `;
                     container.appendChild(brokenCover);
                 }

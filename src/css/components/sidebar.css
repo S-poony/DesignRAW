@@ -287,3 +287,4 @@
     background: #fee2e2;
     color: var(--color-danger, #dc2626);
 }
+.list-actions.no-fade { opacity: 1; pointer-events: auto; }

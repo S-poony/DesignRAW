@@ -263,6 +263,15 @@ export function setupAssetHandlers() {
 
     setupDropHandlersForList(processItems);
     refreshAllViews();
+
+    // Handle "Replace" clicks from the layout (broken placeholders)
+    document.addEventListener('click', (e) => {
+        const replaceBtn = e.target.closest('.replace-broken-btn');
+        if (replaceBtn) {
+            const assetId = replaceBtn.dataset.id;
+            replaceAsset(assetId);
+        }
+    });
 }
 
 function refreshAllViews() {
@@ -315,9 +324,14 @@ function setupDropHandlersForList(importHandler) {
 
         container.addEventListener('click', (e) => {
             const removeBtn = e.target.closest('.remove');
+            const replaceBtn = e.target.closest('.replace');
+
             if (removeBtn) {
                 const assetId = removeBtn.dataset.id;
                 removeAsset(assetId);
+            } else if (replaceBtn) {
+                const assetId = replaceBtn.dataset.id;
+                import('./assets.js').then(m => m.replaceAsset(assetId));
             }
         });
     });
@@ -457,19 +471,19 @@ function clearAssetFromLayout(node, assetId) {
 }
 
 export async function replaceAsset(assetId) {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
+    const handleResult = async (item) => {
         try {
-            const newAssetData = await assetManager.processFile(file);
+            const asset = await assetManager.processRawImage(
+                item.name,
+                item.data,
+                item.type,
+                item.path,
+                item.absolutePath
+            );
+
             saveState();
             assetManager.updateAsset(assetId, {
-                ...newAssetData,
+                ...asset,
                 id: assetId // Preserve original ID
             });
 
@@ -481,7 +495,40 @@ export async function replaceAsset(assetId) {
         }
     };
 
-    fileInput.click();
+    if (window.electronAPI?.openAssets) {
+        // Electron path
+        const results = await window.electronAPI.openAssets({ directory: false });
+        if (results && results.length > 0) {
+            await handleResult(results[0]);
+        }
+    } else {
+        // Web fallback
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+
+        fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const asset = await assetManager.processFile(file, file.name);
+                saveState();
+                assetManager.updateAsset(assetId, {
+                    ...asset,
+                    id: assetId
+                });
+
+                renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                document.dispatchEvent(new CustomEvent('layoutUpdated'));
+            } catch (err) {
+                console.error('Replacement failed:', err);
+                showAlert(`Replacement failed: ${err.message}`, 'Replace Error');
+            }
+        };
+
+        fileInput.click();
+    }
 }
 
 export async function importImageToNode(nodeId) {

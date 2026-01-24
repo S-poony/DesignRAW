@@ -51,6 +51,7 @@ export class AssetManager extends EventTarget {
                         lowResData: lowResData,
                         fullResData: fullResData,
                         path: path || file.name,
+                        isBroken: false,
                         type: 'image'
                     });
                 } catch (err) {
@@ -78,6 +79,7 @@ export class AssetManager extends EventTarget {
                 fullResData: fullResData,
                 path: path || name,
                 absolutePath: absolutePath, // Always store if available
+                isBroken: false,
                 type: type
             };
         }
@@ -95,6 +97,7 @@ export class AssetManager extends EventTarget {
             path: path || name,
             absolutePath: absolutePath,
             isReference: useReferences,
+            isBroken: false,
             type: 'image'
         };
     }
@@ -153,6 +156,7 @@ export class AssetManager extends EventTarget {
                     lowResData: null, // No thumbnail for text
                     fullResData: e.target.result,
                     path: path || file.name,
+                    isBroken: false,
                     type: 'text'
                 });
             };
