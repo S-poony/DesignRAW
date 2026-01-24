@@ -31,11 +31,21 @@ export function renderLayout(container, node, options = {}) {
         if (!paperObservers.has(container)) {
             const observer = new ResizeObserver(entries => {
                 for (let entry of entries) {
-                    const width = entry.contentRect.width;
-                    const height = entry.contentRect.height;
+                    const width = Math.round(entry.contentRect.width);
+                    const height = Math.round(entry.contentRect.height);
+
                     requestAnimationFrame(() => {
-                        entry.target.style.setProperty('--paper-current-width', `${width}px`);
-                        entry.target.style.setProperty('--paper-current-height', `${height}px`);
+                        const style = entry.target.style;
+                        const currentWidth = parseInt(style.getPropertyValue('--paper-current-width'));
+                        const currentHeight = parseInt(style.getPropertyValue('--paper-current-height'));
+
+                        // Only update if the rounded value has actually changed to prevent vibration loops
+                        if (width !== currentWidth) {
+                            style.setProperty('--paper-current-width', `${width}px`);
+                        }
+                        if (height !== currentHeight) {
+                            style.setProperty('--paper-current-height', `${height}px`);
+                        }
                     });
                 }
             });
