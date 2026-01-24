@@ -76,8 +76,8 @@
     grid-row: 2;
     grid-column: 3;
     height: 100%;
-    /* Horizontal layout, Settings to the left of Assets */
-    flex-direction: row-reverse;
+    /* Horizontal layout, Assets to the left of Settings */
+    flex-direction: row;
     align-items: stretch;
     /* Full height */
     overflow: visible;
