@@ -3,7 +3,7 @@ import { findNodeById } from './layout.js';
 import { A4_PAPER_ID } from './constants.js';
 import { assetManager } from './AssetManager.js';
 import { dragDropService } from './DragDropService.js';
-import { attachImageDragHandlers, handleTouchStart, handleTouchMove, handleTouchEnd } from './assets.js';
+import { attachImageDragHandlers, handleTouchStart, handleTouchMove, handleTouchEnd, importImageToNode } from './assets.js';
 import { handleSplitClick, startDrag, startEdgeDrag, createTextInRect, toggleTextAlignment, renderAndRestoreFocus, toggleImageFlip } from './layout.js';
 import { saveState } from './history.js';
 import { marked } from 'marked';
@@ -205,6 +205,26 @@ function renderLeafNode(container, node, options) {
             prompt.className = 'text-prompt';
             prompt.textContent = 'Click to split / Type to write';
             container.appendChild(prompt);
+
+            const emptyNodeControls = document.createElement('div');
+            emptyNodeControls.className = 'empty-node-controls';
+
+            const importBtn = document.createElement('button');
+            importBtn.className = 'import-image-btn';
+            importBtn.title = 'Import Image';
+            importBtn.innerHTML = `
+<svg width="20px" height="20px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M1 1H15V15H1V1ZM6 9L8 11L13 6V13H3V12L6 9ZM6.5 7C7.32843 7 8 6.32843 8 5.5C8 4.67157 7.32843 4 6.5 4C5.67157 4 5 4.67157 5 5.5C5 6.32843 5.67157 7 6.5 7Z" fill="currentColor"/>
+</svg>`;
+            importBtn.setAttribute('aria-label', 'Import image');
+            importBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                importImageToNode(node.id);
+            });
+
+            emptyNodeControls.appendChild(importBtn);
+            container.appendChild(emptyNodeControls);
 
             // Allow click to bubble to parent for splitting (handled in main.js -> handleSplitClick)
             // We only intercept keys to start writing

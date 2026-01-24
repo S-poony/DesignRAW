@@ -324,6 +324,48 @@ export async function replaceAsset(assetId) {
     fileInput.click();
 }
 
+export async function importImageToNode(nodeId) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            document.body.removeChild(fileInput);
+            return;
+        }
+
+        try {
+            const asset = await assetManager.processFile(file);
+            assetManager.addAsset(asset);
+
+            saveState();
+            const pageRoot = getCurrentPage();
+            const node = findNodeById(pageRoot, nodeId);
+            if (node) {
+                node.image = {
+                    assetId: asset.id,
+                    fit: 'cover'
+                };
+                node.text = null;
+
+                renderLayout(document.getElementById(A4_PAPER_ID), pageRoot);
+                document.dispatchEvent(new CustomEvent('layoutUpdated'));
+            }
+        } catch (err) {
+            console.error('Import failed:', err);
+            showAlert(`Import failed: ${err.message}`, 'Import Error');
+        } finally {
+            document.body.removeChild(fileInput);
+        }
+    };
+
+    fileInput.click();
+}
+
 export function attachImageDragHandlers(img, asset, hostRectElement) {
     img.draggable = true;
     img.addEventListener('dragstart', (e) => {
