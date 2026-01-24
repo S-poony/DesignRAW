@@ -40,51 +40,98 @@ export class AssetManager extends EventTarget {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 const fullResData = e.target.result;
-                const img = new Image();
-                img.onerror = () => reject(new Error('Failed to load image'));
-                img.onload = () => {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > MAX_ASSET_DIMENSION) {
-                                height *= MAX_ASSET_DIMENSION / width;
-                                width = MAX_ASSET_DIMENSION;
-                            }
-                        } else {
-                            if (height > MAX_ASSET_DIMENSION) {
-                                width *= MAX_ASSET_DIMENSION / height;
-                                height = MAX_ASSET_DIMENSION;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        if (!ctx) throw new Error('Could not get canvas context');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        const lowResData = canvas.toDataURL('image/jpeg', ASSET_THUMBNAIL_QUALITY);
-
-                        resolve({
-                            id: crypto.randomUUID(),
-                            name: file.name,
-                            lowResData: lowResData,
-                            fullResData: fullResData,
-                            path: path || file.name,
-                            type: 'image'
-                        });
-                    } catch (err) {
-                        reject(err);
-                    }
-                };
-                img.src = String(fullResData);
+                try {
+                    const lowResData = await this._createThumbnail(fullResData);
+                    resolve({
+                        id: crypto.randomUUID(),
+                        name: file.name,
+                        lowResData: lowResData,
+                        fullResData: fullResData,
+                        path: path || file.name,
+                        type: 'image'
+                    });
+                } catch (err) {
+                    reject(err);
+                }
             };
             reader.readAsDataURL(file);
+        });
+    }
+
+    /**
+     * Process raw image data (e.g. from Electron) and generate thumbnail
+     * @param {string} name 
+     * @param {string} fullResData Base64 string
+     * @param {string} type 
+     * @param {string} [path] 
+     * @returns {Promise<Asset>}
+     */
+    async processRawImage(name, fullResData, type, path) {
+        if (type !== 'image') {
+            return {
+                id: crypto.randomUUID(),
+                name: name,
+                lowResData: null,
+                fullResData: fullResData,
+                path: path || name,
+                type: type
+            };
+        }
+
+        const lowResData = await this._createThumbnail(fullResData);
+
+        return {
+            id: crypto.randomUUID(),
+            name: name,
+            lowResData: lowResData,
+            fullResData: fullResData,
+            path: path || name,
+            type: 'image'
+        };
+    }
+
+    /**
+     * @private
+     * @param {string} imageSource Base64 data or URL
+     * @returns {Promise<string>} Low res base64 data
+     */
+    _createThumbnail(imageSource) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_ASSET_DIMENSION) {
+                            height *= MAX_ASSET_DIMENSION / width;
+                            width = MAX_ASSET_DIMENSION;
+                        }
+                    } else {
+                        if (height > MAX_ASSET_DIMENSION) {
+                            width *= MAX_ASSET_DIMENSION / height;
+                            height = MAX_ASSET_DIMENSION;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) throw new Error('Could not get canvas context');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const lowResData = canvas.toDataURL('image/jpeg', ASSET_THUMBNAIL_QUALITY);
+                    resolve(lowResData);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.src = String(imageSource);
         });
     }
 

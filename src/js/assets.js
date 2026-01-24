@@ -109,24 +109,30 @@ export function setupAssetHandlers() {
         // Handle Electron raw data results (FAST path)
         if (Array.isArray(items) && items.length > 0 && items[0].data) {
             // Process in small micro-batches to let UI re-render "Importing..."
-            const batchSize = 25;
+            const batchSize = 10; // Reduced batch size since resizing takes CPU
             for (let i = 0; i < items.length; i += batchSize) {
                 const batch = items.slice(i, i + batchSize);
-                batch.forEach(item => {
-                    const asset = {
-                        id: crypto.randomUUID(),
-                        name: item.name,
-                        lowResData: item.type === 'image' ? item.data : null,
-                        fullResData: item.data,
-                        path: item.path,
-                        type: item.type
-                    };
-                    assetManager.addAsset(asset);
-                    processedCount++;
-                });
+
+                // Process batch in parallel
+                await Promise.all(batch.map(async (item) => {
+                    try {
+                        const asset = await assetManager.processRawImage(
+                            item.name,
+                            item.data,
+                            item.type,
+                            item.path
+                        );
+                        assetManager.addAsset(asset);
+                    } catch (err) {
+                        console.error(`Failed to process ${item.name}:`, err);
+                    } finally {
+                        processedCount++;
+                    }
+                }));
+
                 syncUpdate();
-                // Yield very briefly to update UI without slowing down much
-                if (i + batchSize < items.length) await new Promise(r => setTimeout(r, 1));
+                // Yield explicitly to UI
+                if (i + batchSize < items.length) await new Promise(r => setTimeout(r, 10));
             }
 
             finishImport();
