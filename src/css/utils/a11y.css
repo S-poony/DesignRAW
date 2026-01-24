@@ -5,8 +5,6 @@
 :focus-visible {
     outline: 2px solid #4f46e5;
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
-    border-radius: 4px;
 }
 
 /* Adjust focus for specific elements */
