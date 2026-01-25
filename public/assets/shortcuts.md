@@ -8,7 +8,7 @@
 `tab / shift + tab` = navigation
 `arrows` = navigation (*layout*)
 `shift + arrows` = move content
-`alt + arrows` = snap divider
+`alt + arrows` = move divider (*grows the rectangle in the direction of the arrow*)
 `enter` = select
 
 ### Empty rectangle

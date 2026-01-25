@@ -321,35 +321,59 @@ export function snapDivider(focusedRect, direction) {
     const currentPct = parseFloat(nodeA.size);
     if (isNaN(currentPct)) return;
 
-    // Calculate alignment snap point candidates from other dividers
+    // Use a Set of rounded strings to ensure clean deduplication during construction
+    const candidatesSet = new Set();
+    const addCandidate = (val) => {
+        if (val > 0.5 && val < 99.5) {
+            candidatesSet.add(Math.round(val * 10) / 10); // Round to 1 decimal place (e.g. 33.3)
+        }
+    };
+
+    // 1. Universal Proportions (Highest priority)
+    SNAP_POINTS.forEach(addCandidate);
+
+    // 2. Boundary Snaps (Allow full collapse/expansion)
+    addCandidate(1);
+    addCandidate(99);
+
+    // 3. Recursive Gap Subdivision
+    // Only subdivide if there's enough room to make meaningful proportional jumps
+    const MIN_GAP_FOR_RECURSION = 10;
+    const remainingForward = 100 - currentPct;
+    if (remainingForward > MIN_GAP_FOR_RECURSION) {
+        SNAP_POINTS.forEach(p => addCandidate(currentPct + (remainingForward * p / 100)));
+    }
+    const remainingBackward = currentPct;
+    if (remainingBackward > MIN_GAP_FOR_RECURSION) {
+        SNAP_POINTS.forEach(p => addCandidate(remainingBackward * p / 100));
+    }
+
+    // 4. Global Alignment Snaps
     const otherDividers = Array.from(document.querySelectorAll(`.divider[data-orientation="${targetDividerOrientation}"]`));
     const parentEl = document.querySelector(`.splittable-rect[id="${targetParent.id}"]`) || document.getElementById(A4_PAPER_ID);
     const parentRect = parentEl.getBoundingClientRect();
-
-    const candidates = new Set(SNAP_POINTS);
 
     otherDividers.forEach(div => {
         const divRect = div.getBoundingClientRect();
         const divCenter = (targetDividerOrientation === 'vertical' ? divRect.left + divRect.width / 2 : divRect.top + divRect.height / 2);
         const parentStart = (targetDividerOrientation === 'vertical' ? parentRect.left : parentRect.top);
         const parentSize = (targetDividerOrientation === 'vertical' ? parentRect.width : parentRect.height);
-
-        // Calculate what percentage this global position would be within our targetParent
         const relPct = ((divCenter - parentStart) / parentSize) * 100;
-        if (relPct > 1 && relPct < 99) {
-            candidates.add(Math.round(relPct * 100) / 100);
-        }
+        addCandidate(relPct);
     });
 
-    const sortedCandidates = Array.from(candidates).sort((a, b) => a - b);
+    // Convert back to numbers and sort
+    const sortedCandidates = Array.from(candidatesSet).map(Number).sort((a, b) => a - b);
+
+    // Find target with a strict "Minimum Jump" tolerance
+    // This prevents the "stuck" feeling when multiple candidates are within 1% of each other
+    const MIN_JUMP = 1.2;
     let targetPct = null;
 
     if (direction === 'ArrowRight' || direction === 'ArrowDown') {
-        // Find smallest candidate > currentPct (with 0.2 tolerance to skip current)
-        targetPct = sortedCandidates.find(c => c > currentPct + 0.2);
+        targetPct = sortedCandidates.find(c => c >= currentPct + MIN_JUMP);
     } else {
-        // Find largest candidate < currentPct (with 0.2 tolerance to skip current)
-        targetPct = [...sortedCandidates].reverse().find(c => c < currentPct - 0.2);
+        targetPct = [...sortedCandidates].reverse().find(c => c <= currentPct - MIN_JUMP);
     }
 
     if (targetPct !== undefined && targetPct !== null) {
