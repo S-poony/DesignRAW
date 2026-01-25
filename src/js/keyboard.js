@@ -1,5 +1,5 @@
 import { state, addPage, duplicatePage, getCurrentPage } from './state.js';
-import { handleSplitClick, createTextInRect, findNodeById, swapNodesContent, renderAndRestoreFocus } from './layout.js';
+import { handleSplitClick, createTextInRect, findNodeById, swapNodesContent, renderAndRestoreFocus, snapDivider } from './layout.js';
 import { undo, redo, saveState } from './history.js';
 import { renderLayout } from './renderer.js';
 import { renderPageList } from './pages.js';
@@ -106,6 +106,8 @@ function handleKeyDown(e) {
             e.stopPropagation();
             if (e.shiftKey) {
                 moveContent(focused, e.key);
+            } else if (e.altKey) {
+                snapDivider(focused, e.key);
             } else {
                 navigateRects(focused, e.key);
             }

@@ -277,6 +277,89 @@ export function swapNodesContent(sourceNode, targetNode) {
     sourceNode.textAlign = targetTextAlign;
 }
 
+/**
+ * Snaps the divider adjacent to the focused rectangle in the given direction
+ * @param {HTMLElement} focusedRect 
+ * @param {string} direction 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+ */
+export function snapDivider(focusedRect, direction) {
+    const page = getCurrentPage();
+    let currentNodeId = focusedRect.id;
+    let targetParent = null;
+    let targetDividerOrientation = (direction === 'ArrowLeft' || direction === 'ArrowRight') ? 'vertical' : 'horizontal';
+
+    // Find the first ancestor that is split in the relevant orientation
+    // AND where the current node (or its branch) is adjacent to the divider in that direction
+    let searchNodeId = currentNodeId;
+    while (searchNodeId) {
+        const parent = findParentNode(page, searchNodeId);
+        if (!parent) break;
+
+        if (parent.orientation === targetDividerOrientation) {
+            const isFirstChild = parent.children[0].id === searchNodeId ||
+                (parent.children[0].children && findNodeById(parent.children[0], searchNodeId));
+
+            const isSecondChild = parent.children[1].id === searchNodeId ||
+                (parent.children[1].children && findNodeById(parent.children[1], searchNodeId));
+
+            if ((isFirstChild && (direction === 'ArrowRight' || direction === 'ArrowDown')) ||
+                (isSecondChild && (direction === 'ArrowLeft' || direction === 'ArrowUp'))) {
+                targetParent = parent;
+                break;
+            }
+        }
+        searchNodeId = parent.id;
+    }
+
+    if (!targetParent) return;
+
+    // We found a divider to move!
+    const nodeA = targetParent.children[0];
+    const nodeB = targetParent.children[1];
+
+    // Get current percentage of nodeA
+    const currentPct = parseFloat(nodeA.size);
+    if (isNaN(currentPct)) return;
+
+    // Calculate alignment snap point candidates from other dividers
+    const otherDividers = Array.from(document.querySelectorAll(`.divider[data-orientation="${targetDividerOrientation}"]`));
+    const parentEl = document.querySelector(`.splittable-rect[id="${targetParent.id}"]`) || document.getElementById(A4_PAPER_ID);
+    const parentRect = parentEl.getBoundingClientRect();
+
+    const candidates = new Set(SNAP_POINTS);
+
+    otherDividers.forEach(div => {
+        const divRect = div.getBoundingClientRect();
+        const divCenter = (targetDividerOrientation === 'vertical' ? divRect.left + divRect.width / 2 : divRect.top + divRect.height / 2);
+        const parentStart = (targetDividerOrientation === 'vertical' ? parentRect.left : parentRect.top);
+        const parentSize = (targetDividerOrientation === 'vertical' ? parentRect.width : parentRect.height);
+
+        // Calculate what percentage this global position would be within our targetParent
+        const relPct = ((divCenter - parentStart) / parentSize) * 100;
+        if (relPct > 1 && relPct < 99) {
+            candidates.add(Math.round(relPct * 100) / 100);
+        }
+    });
+
+    const sortedCandidates = Array.from(candidates).sort((a, b) => a - b);
+    let targetPct = null;
+
+    if (direction === 'ArrowRight' || direction === 'ArrowDown') {
+        // Find smallest candidate > currentPct (with 0.2 tolerance to skip current)
+        targetPct = sortedCandidates.find(c => c > currentPct + 0.2);
+    } else {
+        // Find largest candidate < currentPct (with 0.2 tolerance to skip current)
+        targetPct = [...sortedCandidates].reverse().find(c => c < currentPct - 0.2);
+    }
+
+    if (targetPct !== undefined && targetPct !== null) {
+        saveState();
+        nodeA.size = `${targetPct}%`;
+        nodeB.size = `${100 - targetPct}%`;
+        renderAndRestoreFocus(page, focusedRect.id);
+    }
+}
+
 export function startDrag(event, dividerElement = null) {
     event.preventDefault();
     if (!dividerElement) saveState();

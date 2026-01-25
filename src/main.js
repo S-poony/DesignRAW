@@ -168,8 +168,11 @@ function initialize() {
     /**
      * Updates the hover state and focus based on coordinates
      * Useful for recapturing hover after re-renders
+     * @param {number} x
+     * @param {number} y
+     * @param {boolean} shouldFocus Default true. If false, only updates hover classes/overlay but doesn't change element focus.
      */
-    const updateHoverAt = (x, y) => {
+    const updateHoverAt = (x, y, shouldFocus = true) => {
         try {
             // Don't steal focus if user is currently typing
             if (document.activeElement &&
@@ -217,7 +220,11 @@ function initialize() {
             if (rect.id !== lastHoveredRectId || !rect.classList.contains('is-hovered-active')) {
                 document.querySelectorAll('.is-hovered-active').forEach(el => el.classList.remove('is-hovered-active'));
                 rect.classList.add('is-hovered-active');
-                rect.focus({ preventScroll: true });
+
+                // Only change focus if explicitly allowed (stops keyboard actions from being hijacked by mouse pos)
+                if (shouldFocus) {
+                    rect.focus({ preventScroll: true });
+                }
                 lastHoveredRectId = rect.id;
             }
 
@@ -234,8 +241,10 @@ function initialize() {
     document.addEventListener('layoutUpdated', () => {
         updateFocusableRects();
         lastHoveredRectId = null;
-        // Recapture hover state after DOM elements were replaced
-        updateHoverAt(lastMousePos.x, lastMousePos.y);
+        // Recapture hover state after DOM elements were replaced.
+        // We pass false for shouldFocus because we want to update the visual hover classes and overlay
+        // but we DON'T want to steal focus from whatever the keyboard just selected.
+        updateHoverAt(lastMousePos.x, lastMousePos.y, false);
     });
     document.addEventListener('stateRestored', updateFocusableRects);
 
@@ -244,8 +253,8 @@ function initialize() {
         const paper = document.getElementById('a4-paper');
         if (paper) {
             renderLayout(paper, getCurrentPage());
-            // Recapture hover state after settings change might have re-rendered the DOM
-            updateHoverAt(lastMousePos.x, lastMousePos.y);
+            // Same here: update visual hover state without stealing focus
+            updateHoverAt(lastMousePos.x, lastMousePos.y, false);
         }
     });
 

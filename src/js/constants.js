@@ -103,6 +103,13 @@ export const SHORTCUTS = [
         condition: (node) => !node.image && (node.text === null || node.text === undefined)
     },
 
+    {
+        keys: ['Alt', 'Arrows'],
+        label: 'Snap Divider',
+        group: 'Structure',
+        condition: () => true
+    },
+
     // --- Global / Navigation ---
     {
         keys: ['Arrows'],
