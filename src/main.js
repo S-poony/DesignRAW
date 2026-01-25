@@ -183,7 +183,20 @@ function initialize() {
             if (!elUnderCursor) return;
 
             const paper = document.getElementById('a4-paper');
-            if (!paper || !paper.contains(elUnderCursor)) return;
+            if (!paper || !paper.contains(elUnderCursor)) {
+                // If we moved outside paper, clear hover/focus if needed
+                if (lastHoveredRectId) {
+                    document.querySelectorAll('.is-hovered-active').forEach(el => el.classList.remove('is-hovered-active'));
+                    lastHoveredRectId = null;
+                    shortcutsOverlay.hide();
+
+                    // Only blur if we currently have a rect focused
+                    if (document.activeElement && document.activeElement.classList.contains('splittable-rect')) {
+                        document.activeElement.blur();
+                    }
+                }
+                return;
+            }
 
             const rect = elUnderCursor.closest('.splittable-rect[data-split-state="unsplit"]');
             if (!rect) {
@@ -192,6 +205,10 @@ function initialize() {
                 if (!isInteractionLayer) {
                     document.querySelectorAll('.is-hovered-active').forEach(el => el.classList.remove('is-hovered-active'));
                     lastHoveredRectId = null;
+
+                    if (document.activeElement && document.activeElement.classList.contains('splittable-rect')) {
+                        document.activeElement.blur();
+                    }
                 }
                 return;
             }
@@ -249,13 +266,20 @@ function initialize() {
         updateHoverAt(e.clientX, e.clientY);
     });
 
-    // Hide overlay when mouse leaves the paper
+    // Hide overlay and clear focus when mouse leaves the paper
     const paperContainer = document.querySelector('.workspace-wrapper');
     if (paperContainer) {
+        paperContainer.setAttribute('tabindex', '-1'); // Allow clearing focus by clicking background
         paperContainer.addEventListener('mouseleave', () => {
             shortcutsOverlay.hide();
             document.querySelectorAll('.is-hovered-active').forEach(el => el.classList.remove('is-hovered-active'));
             lastHoveredRectId = null;
+
+            // Clear focus if it's currently on a rectangle, to hide floating buttons
+            const paper = document.getElementById('a4-paper');
+            if (paper && paper.contains(document.activeElement) && document.activeElement.classList.contains('splittable-rect')) {
+                document.activeElement.blur();
+            }
         });
     }
 
