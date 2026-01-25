@@ -4,8 +4,8 @@
 @import './css/utils/a11y.css';
 
 /* Layout */
-@import './css/layout/main-layout.css';
-@import './css/layout/a4-paper.css';
+@import './css/layout/app-layout.css';
+@import './css/layout/layout.css';
 
 /* Components */
 @import './css/components/sidebar.css';
