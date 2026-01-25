@@ -383,6 +383,10 @@ function onDrag(event) {
         newSizeA = state.availableSpace;
     }
 
+    // Ensure we avoid fractional pixels where possible
+    newSizeA = Math.round(newSizeA);
+    newSizeB = Math.round(newSizeB);
+
     // Apply snapping if Shift key is held
     if (event.shiftKey) {
         const projectedCenter = state.contentOrigin + newSizeA + state.dividerSize / 2;

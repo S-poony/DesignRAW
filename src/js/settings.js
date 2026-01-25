@@ -90,7 +90,7 @@ export function calculatePaperDimensions() {
         height = longSide;
     }
 
-    return { width, height };
+    return { width: Math.round(width), height: Math.round(height) };
 }
 
 /**

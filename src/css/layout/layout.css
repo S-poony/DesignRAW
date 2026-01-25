@@ -1,7 +1,13 @@
 .a4-paper {
     /* Proportional Sizing Variables */
     --paper-scale-ref: calc((var(--paper-current-width, 1000px) + var(--paper-current-height, 1000px)) * 0.5);
-    --divider-thickness: calc(var(--paper-scale-ref) * var(--divider-ratio, 0.005));
+    --divider-thickness: round(calc(var(--paper-scale-ref) * var(--divider-ratio, 0.005)), 1px);
+
+    /* Fallback for older browsers */
+    @supports not (height: round(1px, 1px)) {
+        --divider-thickness: calc(var(--paper-scale-ref) * var(--divider-ratio, 0.005));
+    }
+
     /* Hit area remains clickable even if divider is 0px */
     --divider-hit-thickness: max(12px, var(--divider-thickness));
     --layout-border-actual: calc(var(--show-borders, 1) * var(--divider-thickness));
@@ -247,6 +253,41 @@
     -webkit-user-drag: none;
     z-index: 100;
 }
-.broken-asset-placeholder { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #fef2f2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; color: var(--color-danger, #ef4444); font-weight: 600; font-size: 0.75rem; z-index: 5; border: 2px dashed var(--color-danger, #ef4444); text-align: center; padding: 1rem; } .broken-asset-placeholder .icon { width: 24px; height: 24px; background-color: currentColor; }
 
-.btn-mini { margin-top: 4px; padding: 4px 10px; font-size: 11px; border-radius: 4px; font-weight: 700; pointer-events: auto; cursor: pointer; box-shadow: var(--shadow-sm); }
+.broken-asset-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fef2f2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--color-danger, #ef4444);
+    font-weight: 600;
+    font-size: 0.75rem;
+    z-index: 5;
+    border: 2px dashed var(--color-danger, #ef4444);
+    text-align: center;
+    padding: 1rem;
+}
+
+.broken-asset-placeholder .icon {
+    width: 24px;
+    height: 24px;
+    background-color: currentColor;
+}
+
+.btn-mini {
+    margin-top: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    font-weight: 700;
+    pointer-events: auto;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+}
