@@ -108,7 +108,6 @@ async function performExport(format, qualityMultiplier) {
     }
 
     const tempContainer = document.createElement('div');
-    // ... existing style setup ...
     const { width: layoutWidth, height: layoutHeight } = calculatePaperDimensions();
 
     tempContainer.style.position = 'fixed';
@@ -156,9 +155,7 @@ async function performExport(format, qualityMultiplier) {
                 hideControls: true
             });
 
-            // Need to wait for high-res images to load since they are background images now?
-            // Actually, if we set background-image, the browser fetches it. html2canvas might need it ready.
-            // We can use a small utility to wait for all background images in the container.
+            // Wait for high-res images and fonts to be ready for capture
             await waitForBackgroundImages(paperWrapper);
             await document.fonts.ready;
 
@@ -167,8 +164,6 @@ async function performExport(format, qualityMultiplier) {
             if (svgOverlay) {
                 paperWrapper.appendChild(svgOverlay);
             }
-
-            // No manual DOM cleanup needed anymore!
 
             const canvas = await html2canvas(tempContainer, {
                 scale: qualityMultiplier,
@@ -206,8 +201,6 @@ async function performExport(format, qualityMultiplier) {
             } else if (isSingleImageExport) {
                 const ext = format === 'jpeg' ? 'jpg' : 'png';
                 const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
-                // Using toDataURL for direct download to ensure it happens synchronously with the loop or before cleanup
-                // Actually toBlob is fine if we wait for it, but toDataURL is easier for immediate download logic
                 const dataUrl = canvas.toDataURL(mime, format === 'jpeg' ? 0.95 : 1.0);
                 const link = document.createElement('a');
                 link.href = dataUrl;
@@ -242,30 +235,31 @@ function generateSvgOverlay(paperWrapper, layoutWidth, layoutHeight) {
     const borderThickness = settings.dividers.width;
     const borderColor = settings.dividers.color;
 
-    // If thickness is 0, there's nothing to draw (and we avoid thin lines appearing)
+    // If thickness is 0, no dividers or borders should be rendered
     if (borderThickness <= 0) return null;
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', layoutWidth);
     svg.setAttribute('height', layoutHeight);
     svg.setAttribute('viewBox', `0 0 ${layoutWidth} ${layoutHeight}`);
-    svg.style.position = 'absolute';
-    svg.style.top = '0';
-    svg.style.left = '0';
-    svg.style.width = '100%';
-    svg.style.height = '100%';
-    svg.style.pointerEvents = 'none';
-    svg.style.zIndex = '9999'; // On top of everything
-    // 1. Paper Border - Only if enabled
+
+    // Position SVG precisely over the paper
+    Object.assign(svg.style, {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: '9999'
+    });
+
+    // 1. Draw Paper Border
     if (settings.dividers.showBorders) {
         const borderRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        // SVG stroke is centered on the path. To emulate 'border-inside' or generic CSS border:
-        // formatting a rect with stroke-width X means X/2 is outside, X/2 inside.
-        // We want exact alignment.
-        // Let's standardise on just drawing specific rects for borders to match dividers exactly?
-        // Or just use stroke with inset. 
-        // Simpler: Stroke inset by half width.
         const halfWidth = borderThickness / 2;
+
+        // Inset the rect by half the stroke width to match CSS border behavior
         borderRect.setAttribute('x', halfWidth);
         borderRect.setAttribute('y', halfWidth);
         borderRect.setAttribute('width', layoutWidth - borderThickness);
@@ -276,52 +270,42 @@ function generateSvgOverlay(paperWrapper, layoutWidth, layoutHeight) {
         svg.appendChild(borderRect);
     }
 
-    // 2. Dividers
-    // We query the DOM dividers which are currently rendered (but failing sub-pixel)
+    // 2. Draw Dividers
     const dividers = paperWrapper.querySelectorAll('.divider');
     const paperRect = paperWrapper.getBoundingClientRect();
 
-    // Calculate scale factor if the wrapper is currently zoomed/scaled (though usually 1 in export)
-    // We used layoutWidth/Height for SVG, so we map DOM client rects to that coordinate space.
+    // Support varying export resolutions by mapping DOM coordinates to SVG viewBox
     const scaleX = layoutWidth / paperRect.width;
     const scaleY = layoutHeight / paperRect.height;
 
     dividers.forEach(div => {
         const r = div.getBoundingClientRect();
 
-        // Relativize to paper
         const x = (r.left - paperRect.left) * scaleX;
         const y = (r.top - paperRect.top) * scaleY;
         const w = r.width * scaleX;
         const h = r.height * scaleY;
 
-        // Snapping logic to avoid sub-pixel gaps in SVG too?
-        // SVG handles float coordinates better, but let's ensure they are clean.
-        // Actually, the whole point is to cover the gap.
-        // We can slightly bloat the rect by 0.5px to overlap content?
-        // User requested: "recreate an svg ... from the divider info"
-
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        // BLEED STRATEGY:
+
+        // Bleed strategy: Expand the rect slightly (0.5px) to prevent sub-pixel white slivers
         const bleed = 0.5;
         rect.setAttribute('x', x - bleed);
         rect.setAttribute('y', y - bleed);
         rect.setAttribute('width', w + (bleed * 2));
         rect.setAttribute('height', h + (bleed * 2));
+
         rect.setAttribute('fill', borderColor);
+        // crispEdges disables anti-aliasing which is critical for perfect gaps-free rendering
         rect.setAttribute('shape-rendering', 'crispEdges');
-        // Ensure no hairline gaps between divider and border/other dividers:
-        // shape-rendering="crispEdges" might help or hurt depending on browser.
-        // "geometricPrecision" is default.
 
         svg.appendChild(rect);
 
-        // HIDE the original DOM divider
+        // Hide original DOM divider while preserving layout
         div.style.opacity = '0';
-        // We keep it in DOM for layout structure, just invisible.
     });
 
-    // Hide original Paper Border
+    // Hide original DOM border
     paperWrapper.style.border = 'none';
 
     return svg;
@@ -398,9 +382,7 @@ async function performPublishFlipbook(qualityMultiplier) {
 
             // Remove UI elements logic is now handled by renderLayout options
 
-            // Reverted Link Logic: Standard extraction without hiding elements
-            // The text fix is strictly relying on DOM container alignment now.
-
+            // Ensure all links are extracted based on the rendered DOM
             const { width: layoutWidth, height: layoutHeight } = calculatePaperDimensions();
 
             const canvas = await html2canvas(tempContainer, {
