@@ -1,4 +1,4 @@
-import { A4_PAPER_ID } from './constants.js';
+import { A4_PAPER_ID, SNAP_POINTS, SNAP_THRESHOLD } from './constants.js';
 import { state, getCurrentPage } from './state.js';
 import { saveState } from './history.js';
 import { renderLayout } from './renderer.js';
@@ -374,9 +374,20 @@ function onDrag(event) {
         newSizeA = divider.totalSize;
     }
 
-    const totalGrow = (newSizeA + newSizeB) / divider.totalSize * 100;
-    const growA = (newSizeA / divider.totalSize) * 100;
-    const growB = (newSizeB / divider.totalSize) * 100;
+    let growA = (newSizeA / divider.totalSize) * 100;
+    let growB = (newSizeB / divider.totalSize) * 100;
+
+    // Apply snapping if Shift key is held
+    if (event.shiftKey) {
+        for (const snapPoint of SNAP_POINTS) {
+            const snapPx = (snapPoint / 100) * divider.totalSize;
+            if (Math.abs(newSizeA - snapPx) < SNAP_THRESHOLD) {
+                growA = snapPoint;
+                growB = 100 - snapPoint;
+                break;
+            }
+        }
+    }
 
     rectA.style.flexGrow = growA;
     rectB.style.flexGrow = growB;
