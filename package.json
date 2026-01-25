@@ -1,7 +1,7 @@
 {
   "name": "broco",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -45,7 +45,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/icon.png",
+      "icon": "src/assets/icons/AppIcon.png",
       "verifyUpdateCodeSignature": false
     },
     "nsis": {
