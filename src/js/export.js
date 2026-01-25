@@ -124,6 +124,8 @@ async function performExport(format, qualityMultiplier) {
     tempContainer.style.boxShadow = 'none';
 
     tempContainer.className = 'export-container';
+    // Fix: Ensure container queries (cqw/cqh) resolve correctly against this container
+    tempContainer.style.containerType = 'size';
     document.body.appendChild(tempContainer);
 
     const isSingleImageExport = (format === 'png' || format === 'jpeg') && state.pages.length === 1;
@@ -181,22 +183,32 @@ async function performExport(format, qualityMultiplier) {
 
             if (format === 'pdf') {
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const PDF_W = 595.28;
-                const PDF_H = 841.89;
+
+                // Calculate PDF dimensions (maintain aspect ratio)
+                // Default PDF unit is 'pt' (1 pt = 1/72 inch). 
+                // We'll use points but match the pixel aspect ratio directly.
+                // Optionally we could just use 'px' unit in jsPDF but strict 'pt' is standar.
+                // Let's map 1px = 0.75pt (approx) or just use the layout dimensions directly as points 
+                // to keep it simple and perfectly proportional.
+                const pdfWidth = layoutWidth * 0.75;
+                const pdfHeight = layoutHeight * 0.75;
+                const orientation = pdfWidth > pdfHeight ? 'landscape' : 'portrait';
 
                 if (!pdf) {
                     pdf = new jsPDF({
-                        orientation: 'portrait',
+                        orientation: orientation,
                         unit: 'pt',
-                        format: 'a4'
+                        format: [pdfWidth, pdfHeight]
                     });
                 } else {
-                    pdf.addPage();
+                    pdf.addPage([pdfWidth, pdfHeight], orientation);
                 }
-                pdf.addImage(imgData, 'JPEG', 0, 0, PDF_W, PDF_H);
+
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
                 // Add interactive links
-                addLinksToPdf(pdf, paperWrapper, PDF_W / layoutWidth);
+                // Scale factor for links: PDF dimensions / Layout dimensions
+                addLinksToPdf(pdf, paperWrapper, pdfWidth / layoutWidth);
 
             } else if (isSingleImageExport) {
                 const ext = format === 'jpeg' ? 'jpg' : 'png';
@@ -342,6 +354,8 @@ async function performPublishFlipbook(qualityMultiplier) {
 
     // CRITICAL: Add the class that might provide CSS resets
     tempContainer.className = 'export-container';
+    // Fix: Ensure container queries (cqw/cqh) resolve correctly against this container
+    tempContainer.style.containerType = 'size';
     document.body.appendChild(tempContainer);
 
     const apiPages = [];
