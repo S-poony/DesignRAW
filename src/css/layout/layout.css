@@ -48,9 +48,11 @@
 
 /* Pseudo-element border removed to restore standard focus ring behavior */
 
-/* Cover image scaling container */
-.paper-cover-image {
+/* Background image scaling container */
+.paper-bg-image {
     background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     pointer-events: none;
     user-select: none;
 }
@@ -207,8 +209,8 @@
     min-width: 0;
     min-height: 0;
     position: relative;
-    /* Removed z-index to allow children to escape this stacking context */
-    /* For absolutely positioned elements inside */
+    z-index: 1;
+    /* Above background image (0) */
 }
 
 /* Priority for hovered or focused rectangles so buttons work over hitboxes */

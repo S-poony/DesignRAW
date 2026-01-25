@@ -18,8 +18,8 @@ const defaultSettings = {
     },
     paper: {
         backgroundColor: '#ffffff',
-        coverImage: null, // data URL
-        coverImageOpacity: 0.2,
+        backgroundImage: null, // data URL
+        backgroundImageOpacity: 0.2,
         showPageNumbers: false
     },
     dividers: {
@@ -124,12 +124,12 @@ export function applySettings() {
 
     // Paper settings
     root.style.setProperty('--paper-bg-color', settings.paper.backgroundColor);
-    root.style.setProperty('--cover-image-opacity', settings.paper.coverImageOpacity);
+    root.style.setProperty('--bg-image-opacity', settings.paper.backgroundImageOpacity);
 
-    // Cover image
+    // Background image
     // NOTE: Direct manipulation removed to break circular dependency.
     // Background color is handled by CSS variable updates above.
-    // Cover image creation is handled by re-rendering via 'settingsUpdated' event using CSS var for opacity.
+    // Background image creation is handled by re-rendering via 'settingsUpdated' event using CSS var for opacity.
     // Divider settings
     root.style.setProperty('--divider-ratio', (settings.dividers.width / 1000).toString());
     root.style.setProperty('--divider-color', settings.dividers.color);
@@ -158,7 +158,13 @@ export function loadSettings(savedSettings) {
         settings = {
             layout: { ...defaultSettings.layout, ...savedSettings.layout },
             text: { ...defaultSettings.text, ...savedSettings.text },
-            paper: { ...defaultSettings.paper, ...savedSettings.paper },
+            paper: {
+                ...defaultSettings.paper,
+                ...savedSettings.paper,
+                // Migration: handle old 'coverImage' names if present in saved file
+                backgroundImage: savedSettings.paper.backgroundImage || savedSettings.paper.coverImage || null,
+                backgroundImageOpacity: savedSettings.paper.backgroundImageOpacity !== undefined ? savedSettings.paper.backgroundImageOpacity : (savedSettings.paper.coverImageOpacity !== undefined ? savedSettings.paper.coverImageOpacity : 0.2)
+            },
             dividers: { ...defaultSettings.dividers, ...savedSettings.dividers },
             electron: { ...defaultSettings.electron, ...savedSettings.electron }
         };
@@ -277,21 +283,21 @@ function syncFormWithSettings() {
     updateColorUI('text-color', settings.text.textColor);
 
     // Paper
-    const coverOpacitySlider = document.getElementById('setting-cover-opacity');
-    const coverOpacityValue = document.getElementById('cover-opacity-value');
+    const bgOpacitySlider = document.getElementById('setting-bg-opacity');
+    const bgOpacityValue = document.getElementById('bg-opacity-value');
     const pageNumbersToggle = document.getElementById('setting-page-numbers');
-    const coverPreview = document.getElementById('cover-image-preview');
+    const bgPreview = document.getElementById('bg-image-preview');
 
-    if (coverOpacitySlider) coverOpacitySlider.value = settings.paper.coverImageOpacity * 100;
-    if (coverOpacityValue) coverOpacityValue.textContent = `${Math.round(settings.paper.coverImageOpacity * 100)}%`;
+    if (bgOpacitySlider) bgOpacitySlider.value = settings.paper.backgroundImageOpacity * 100;
+    if (bgOpacityValue) bgOpacityValue.textContent = `${Math.round(settings.paper.backgroundImageOpacity * 100)}%`;
     if (pageNumbersToggle) pageNumbersToggle.checked = settings.paper.showPageNumbers;
     updateColorUI('paper-color', settings.paper.backgroundColor);
 
-    if (coverPreview) {
-        if (settings.paper.coverImage) {
-            coverPreview.innerHTML = `<img src="${settings.paper.coverImage}" alt="Cover preview" style="opacity: ${settings.paper.coverImageOpacity}">`;
+    if (bgPreview) {
+        if (settings.paper.backgroundImage) {
+            bgPreview.innerHTML = `<img src="${settings.paper.backgroundImage}" alt="Background preview" style="opacity: ${settings.paper.backgroundImageOpacity}">`;
         } else {
-            coverPreview.innerHTML = '<span>No image selected</span>';
+            bgPreview.innerHTML = '<span>No image selected</span>';
         }
     }
 
@@ -408,39 +414,39 @@ function setupTextControls() {
 }
 
 function setupPaperControls() {
-    const coverImageInput = document.getElementById('setting-cover-image');
-    const coverOpacitySlider = document.getElementById('setting-cover-opacity');
-    const coverOpacityValue = document.getElementById('cover-opacity-value');
+    const bgImageInput = document.getElementById('setting-bg-image');
+    const bgOpacitySlider = document.getElementById('setting-bg-opacity');
+    const bgOpacityValue = document.getElementById('bg-opacity-value');
     const pageNumbersToggle = document.getElementById('setting-page-numbers');
-    const removeCoverBtn = document.getElementById('remove-cover-image');
+    const removeBgBtn = document.getElementById('remove-bg-image');
 
     setupColorSelection('paper-color', 'paper', 'backgroundColor');
 
-    coverImageInput?.addEventListener('change', (e) => {
+    bgImageInput?.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = (event) => {
-            updateSetting('paper', 'coverImage', event.target.result);
+            updateSetting('paper', 'backgroundImage', event.target.result);
             syncFormWithSettings();
         };
         reader.readAsDataURL(file);
     });
 
-    removeCoverBtn?.addEventListener('click', () => {
-        updateSetting('paper', 'coverImage', null);
+    removeBgBtn?.addEventListener('click', () => {
+        updateSetting('paper', 'backgroundImage', null);
         syncFormWithSettings();
-        if (coverImageInput) coverImageInput.value = '';
+        if (bgImageInput) bgImageInput.value = '';
     });
 
-    coverOpacitySlider?.addEventListener('input', (e) => {
+    bgOpacitySlider?.addEventListener('input', (e) => {
         const value = parseInt(e.target.value, 10) / 100;
-        if (coverOpacityValue) coverOpacityValue.textContent = `${Math.round(value * 100)}%`;
-        updateSetting('paper', 'coverImageOpacity', value);
+        if (bgOpacityValue) bgOpacityValue.textContent = `${Math.round(value * 100)}%`;
+        updateSetting('paper', 'backgroundImageOpacity', value);
 
         // Update preview opacity in real-time
-        const previewImg = document.querySelector('#cover-image-preview img');
+        const previewImg = document.querySelector('#bg-image-preview img');
         if (previewImg) {
             previewImg.style.opacity = value;
         }

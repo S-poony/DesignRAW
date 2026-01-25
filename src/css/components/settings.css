@@ -528,14 +528,14 @@ summary.settings-section-title .icon {
     transform: translateX(22px);
 }
 
-/* Cover Image Controls */
-.cover-image-controls {
+/* Background Image Controls */
+.bg-image-controls {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
-.cover-preview {
+.bg-preview {
     width: 100%;
     height: 80px;
     background-color: var(--color-bg-light, #f3f4f6);
@@ -553,18 +553,18 @@ summary.settings-section-title .icon {
     border: 1px solid var(--color-border-light, #e5e7eb);
 }
 
-.cover-preview span {
+.bg-preview span {
     color: var(--color-text-subtle, #9ca3af);
     font-size: 0.875rem;
 }
 
-.cover-preview img {
+.bg-preview img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.cover-actions {
+.bg-actions {
     display: flex;
     gap: 0.5rem;
     align-items: center;

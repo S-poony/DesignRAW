@@ -35,7 +35,7 @@ export function renderLayout(container, node, options = {}) {
         if (!options.hideControls) {
             addEdgeHandles(container);
         }
-        renderCoverImage(container);
+        renderBackgroundImage(container);
         renderPageNumber(container);
         return;
     }
@@ -600,30 +600,30 @@ function renderPageNumber(container) {
     container.appendChild(pageNumber);
 }
 
-export function renderCoverImage(container) {
+export function renderBackgroundImage(container) {
     const settings = getSettings();
 
-    // Always remove existing cover image element first
-    const existing = container.querySelector('.paper-cover-image');
+    // Always remove existing background image element first
+    const existing = container.querySelector('.paper-bg-image');
     if (existing) existing.remove();
 
-    if (!settings.paper.coverImage) return;
+    if (!settings.paper.backgroundImage) return;
 
-    const cover = document.createElement('div');
-    cover.className = 'paper-cover-image';
-    cover.style.position = 'absolute';
-    cover.style.top = '0';
-    cover.style.left = '0';
-    cover.style.width = '100%';
-    cover.style.height = '100%';
-    cover.style.backgroundImage = `url(${settings.paper.coverImage})`;
-    cover.style.backgroundSize = 'cover';
-    cover.style.backgroundPosition = 'center';
+    const bg = document.createElement('div');
+    bg.className = 'paper-bg-image';
+    bg.style.position = 'absolute';
+    bg.style.top = '0';
+    bg.style.left = '0';
+    bg.style.width = '100%';
+    bg.style.height = '100%';
+    bg.style.backgroundImage = `url(${settings.paper.backgroundImage})`;
+    bg.style.backgroundSize = 'cover';
+    bg.style.backgroundPosition = 'center';
     // Use CSS variable for real-time updates without re-render
-    cover.style.opacity = 'var(--cover-image-opacity, 0.2)';
-    cover.style.pointerEvents = 'none';
-    cover.style.zIndex = '1'; // Below rects (z-index 2) but above paper background
+    bg.style.opacity = 'var(--bg-image-opacity, 0.2)';
+    bg.style.pointerEvents = 'none';
+    bg.style.zIndex = '0'; // Behind everything including rects
 
-    // Insert at the beginning so it's behind everything else
-    container.insertBefore(cover, container.firstChild);
+    // Insert at the beginning so it's behind everything else in DOM
+    container.insertBefore(bg, container.firstChild);
 }
