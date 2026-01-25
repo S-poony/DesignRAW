@@ -7,6 +7,7 @@
 `ctrl + shift + z` = redo
 `tab / shift + tab` = navigation
 `arrows` = navigation (*layout*)
+`shift + arrows` = move content
 `enter` = select
 
 ### Empty rectangle

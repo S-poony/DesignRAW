@@ -247,6 +247,36 @@ export function toggleImageFlip(rectId) {
     renderAndRestoreFocus(getCurrentPage(), `flip-btn-${rectId}`);
 }
 
+/**
+ * Swaps content (images, text, settings) between two nodes
+ * Useful for drag-and-drop and keyboard shortcuts
+ * @param {Object} sourceNode 
+ * @param {Object} targetNode 
+ */
+export function swapNodesContent(sourceNode, targetNode) {
+    if (!sourceNode || !targetNode) return;
+
+    // Capture source content
+    const sourceImage = sourceNode.image ? { ...sourceNode.image } : null;
+    const sourceText = sourceNode.text;
+    const sourceTextAlign = sourceNode.textAlign;
+
+    // Capture target content
+    const targetImage = targetNode.image ? { ...targetNode.image } : null;
+    const targetText = targetNode.text;
+    const targetTextAlign = targetNode.textAlign;
+
+    // Swap: Source content to target
+    targetNode.image = sourceImage;
+    targetNode.text = sourceText;
+    targetNode.textAlign = sourceTextAlign;
+
+    // Swap: Target content to source
+    sourceNode.image = targetImage;
+    sourceNode.text = targetText;
+    sourceNode.textAlign = targetTextAlign;
+}
+
 export function startDrag(event, dividerElement = null) {
     event.preventDefault();
     if (!dividerElement) saveState();

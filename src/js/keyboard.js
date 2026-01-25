@@ -1,5 +1,5 @@
 import { state, addPage, duplicatePage, getCurrentPage } from './state.js';
-import { handleSplitClick, createTextInRect } from './layout.js';
+import { handleSplitClick, createTextInRect, findNodeById, swapNodesContent, renderAndRestoreFocus } from './layout.js';
 import { undo, redo, saveState } from './history.js';
 import { renderLayout } from './renderer.js';
 import { renderPageList } from './pages.js';
@@ -104,7 +104,11 @@ function handleKeyDown(e) {
         case 'ArrowRight':
             e.preventDefault();
             e.stopPropagation();
-            navigateRects(focused, e.key);
+            if (e.shiftKey) {
+                moveContent(focused, e.key);
+            } else {
+                navigateRects(focused, e.key);
+            }
             break;
 
         case 'Enter':
@@ -132,13 +136,14 @@ function handleKeyDown(e) {
 }
 
 /**
- * Navigate between rectangles using arrow keys
+ * Find the closest rectangle in a given direction
  * @param {HTMLElement} current 
  * @param {string} direction 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+ * @returns {HTMLElement|null}
  */
-function navigateRects(current, direction) {
+export function getClosestRect(current, direction) {
     const allRects = Array.from(document.querySelectorAll('.splittable-rect[data-split-state="unsplit"]'));
-    if (allRects.length <= 1) return;
+    if (allRects.length <= 1) return null;
 
     const currentRect = current.getBoundingClientRect();
     const currentCenter = {
@@ -195,6 +200,36 @@ function navigateRects(current, direction) {
         }
     });
 
+    return closest;
+}
+
+/**
+ * Move content between rectangles using Shift + Arrow keys
+ * @param {HTMLElement} current 
+ * @param {string} direction 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+ */
+function moveContent(current, direction) {
+    const closest = getClosestRect(current, direction);
+    if (!closest) return;
+
+    const sourceNode = findNodeById(getCurrentPage(), current.id);
+    const targetNode = findNodeById(getCurrentPage(), closest.id);
+
+    if (sourceNode && targetNode) {
+        saveState();
+        swapNodesContent(sourceNode, targetNode);
+        // Render and shift focus to the target node
+        renderAndRestoreFocus(getCurrentPage(), closest.id);
+    }
+}
+
+/**
+ * Navigate between rectangles using arrow keys
+ * @param {HTMLElement} current 
+ * @param {string} direction 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+ */
+function navigateRects(current, direction) {
+    const closest = getClosestRect(current, direction);
     if (closest) {
         closest.focus();
     }

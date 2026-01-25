@@ -388,23 +388,12 @@ function handleDropLogic(target) {
 
             if (sourceNode) {
                 // SWAP logic when dragging between rectangles
-                const sourceImage = sourceNode.image ? { ...sourceNode.image } : null;
-                const sourceText = sourceNode.text;
-                const sourceTextAlign = sourceNode.textAlign;
-
-                const targetImage = targetNode.image ? { ...targetNode.image } : null;
-                const targetText = targetNode.text;
-                const targetTextAlign = targetNode.textAlign;
-
-                // Set target to source's old content
-                targetNode.image = sourceImage;
-                targetNode.text = sourceText;
-                targetNode.textAlign = sourceTextAlign;
-
-                // Set source to target's old content
-                sourceNode.image = targetImage;
-                sourceNode.text = targetText;
-                sourceNode.textAlign = targetTextAlign;
+                import('./layout.js').then(m => {
+                    m.swapNodesContent(sourceNode, targetNode);
+                    renderLayout(document.getElementById(A4_PAPER_ID), getCurrentPage());
+                    document.dispatchEvent(new CustomEvent('layoutUpdated'));
+                });
+                return; // async handling above
             } else {
                 // OVERWRITE logic when dragging from sidebar
                 if (dragData.asset) {
