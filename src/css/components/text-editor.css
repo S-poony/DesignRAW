@@ -30,7 +30,8 @@
     content: none;
 }
 
-.splittable-rect:hover .text-prompt {
+.splittable-rect:hover .text-prompt,
+.splittable-rect:focus-within .text-prompt {
     opacity: 1;
 }
 

@@ -211,8 +211,9 @@
     /* For absolutely positioned elements inside */
 }
 
-/* Priority for hovered rectangles so buttons work over hitboxes */
-.splittable-rect[data-split-state="unsplit"].is-hovered-active:not(.is-editing) {
+/* Priority for hovered or focused rectangles so buttons work over hitboxes */
+.splittable-rect[data-split-state="unsplit"].is-hovered-active:not(.is-editing),
+.splittable-rect[data-split-state="unsplit"]:focus-within:not(.is-editing) {
     z-index: 60;
 }
 

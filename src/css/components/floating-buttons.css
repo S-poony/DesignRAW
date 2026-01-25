@@ -110,7 +110,11 @@
 .splittable-rect[data-split-state="unsplit"].is-hovered-active .remove-text-btn,
 .splittable-rect[data-split-state="unsplit"].is-hovered-active .align-text-btn,
 .splittable-rect[data-split-state="unsplit"].is-hovered-active .image-controls,
-.splittable-rect[data-split-state="unsplit"].is-hovered-active .empty-node-controls
+.splittable-rect[data-split-state="unsplit"].is-hovered-active .empty-node-controls,
+.splittable-rect[data-split-state="unsplit"]:focus-within .remove-text-btn,
+.splittable-rect[data-split-state="unsplit"]:focus-within .align-text-btn,
+.splittable-rect[data-split-state="unsplit"]:focus-within .image-controls,
+.splittable-rect[data-split-state="unsplit"]:focus-within .empty-node-controls
 
 /* Legacy support */
     {
