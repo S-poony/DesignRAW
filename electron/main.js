@@ -30,6 +30,7 @@ function createWindow() {
         minWidth: 400, // Reduced from 800 to avoid conflicts with logical scaling
         minHeight: 300,
         title: "BROCO",
+        autoHideMenuBar: true, // Hides the top bar by default
         webPreferences: {
             preload: join(__dirname, 'preload.cjs'),
             contextIsolation: true,
@@ -37,6 +38,9 @@ function createWindow() {
         },
         icon: join(__dirname, '../src/assets/icons/AppIcon.png')
     });
+
+    // Completely remove the default menu (File, Edit, etc.)
+    Menu.setApplicationMenu(null);
 
     // Load the app
     if (!app.isPackaged) {
