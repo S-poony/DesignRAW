@@ -272,15 +272,24 @@ export function startDrag(event, dividerElement = null) {
     const parentRect = parent.getBoundingClientRect();
     const rectARect = rectA.getBoundingClientRect();
     const rectBRect = rectB.getBoundingClientRect();
+    const dividerRect = divider.getBoundingClientRect();
 
     if (orientation === 'vertical') {
         state.startSizeA = rectARect.width;
         state.startSizeB = rectBRect.width;
-        divider.totalSize = parentRect.width;
+        state.dividerSize = dividerRect.width;
+        state.availableSpace = state.startSizeA + state.startSizeB;
+        state.contentOrigin = rectARect.left;
+        state.parentOrigin = parentRect.left;
+        state.parentFullSize = parentRect.width;
     } else {
         state.startSizeA = rectARect.height;
         state.startSizeB = rectBRect.height;
-        divider.totalSize = parentRect.height;
+        state.dividerSize = dividerRect.height;
+        state.availableSpace = state.startSizeA + state.startSizeB;
+        state.contentOrigin = rectARect.top;
+        state.parentOrigin = parentRect.top;
+        state.parentFullSize = parentRect.height;
     }
 
     divider.rectA = rectA;
@@ -368,29 +377,52 @@ function onDrag(event) {
 
     if (newSizeA < minSize) {
         newSizeA = minSize;
-        newSizeB = divider.totalSize;
+        newSizeB = state.availableSpace;
     } else if (newSizeB < minSize) {
         newSizeB = minSize;
-        newSizeA = divider.totalSize;
+        newSizeA = state.availableSpace;
     }
-
-    let growA = (newSizeA / divider.totalSize) * 100;
-    let growB = (newSizeB / divider.totalSize) * 100;
 
     // Apply snapping if Shift key is held
     if (event.shiftKey) {
-        for (const snapPoint of SNAP_POINTS) {
-            const snapPx = (snapPoint / 100) * divider.totalSize;
-            if (Math.abs(newSizeA - snapPx) < SNAP_THRESHOLD) {
-                growA = snapPoint;
-                growB = 100 - snapPoint;
+        const projectedCenter = state.contentOrigin + newSizeA + state.dividerSize / 2;
+        let snappedCenter = null;
+
+        // 1. Divider Alignment Snapping (Center-to-Center)
+        const otherDividers = document.querySelectorAll(`.divider[data-orientation="${orientation}"]`);
+        for (const other of otherDividers) {
+            if (other === divider) continue;
+            const otherRect = other.getBoundingClientRect();
+            const otherCenter = (orientation === 'vertical' ? otherRect.left + otherRect.width / 2 : otherRect.top + otherRect.height / 2);
+
+            if (Math.abs(projectedCenter - otherCenter) < SNAP_THRESHOLD) {
+                snappedCenter = otherCenter;
                 break;
             }
         }
+
+        // 2. Proportional Snapping (Width-Aware)
+        if (snappedCenter === null) {
+            for (const snapPoint of SNAP_POINTS) {
+                // Target center is position at % of PARENT total size
+                const targetCenter = state.parentOrigin + (snapPoint / 100) * state.parentFullSize;
+
+                if (Math.abs(projectedCenter - targetCenter) < SNAP_THRESHOLD) {
+                    snappedCenter = targetCenter;
+                    break;
+                }
+            }
+        }
+
+        if (snappedCenter !== null) {
+            newSizeA = snappedCenter - state.contentOrigin - state.dividerSize / 2;
+            newSizeB = state.availableSpace - newSizeA;
+        }
     }
 
-    rectA.style.flexGrow = growA;
-    rectB.style.flexGrow = growB;
+    // Use pixel values for flex-grow to ensure absolute accuracy with fixed-width dividers
+    rectA.style.flexGrow = newSizeA;
+    rectB.style.flexGrow = newSizeB;
 }
 
 function stopDrag() {
@@ -401,8 +433,14 @@ function stopDrag() {
     const rectB = divider.rectB;
     const orientation = divider.getAttribute('data-orientation');
 
-    const pA = parseFloat(rectA.style.flexGrow);
-    const pB = parseFloat(rectB.style.flexGrow);
+    const fA = parseFloat(rectA.style.flexGrow);
+    const fB = parseFloat(rectB.style.flexGrow);
+    const total = fA + fB;
+
+    // Convert pixel-accurate flex-grow back to percentages for state persistence
+    // Use the stored availableSpace to ensure consistency if the layout shifted during drag (unlikely but safer)
+    const pA = (fA / total) * 100;
+    const pB = (fB / total) * 100;
 
     // Sync back to state
     const parentNode = findNodeById(getCurrentPage(), divider.parentId);
