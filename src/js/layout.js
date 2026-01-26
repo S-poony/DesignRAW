@@ -557,7 +557,31 @@ function onDrag(event) {
 
         // 2. Proportional Snapping (Width-Aware)
         if (snappedCenter === null) {
-            for (const snapPoint of SNAP_POINTS) {
+            // Dynamic Snap Points calculation
+            const parentNode = findNodeById(getCurrentPage(), divider.parentId);
+            let dynamicSnaps = [50]; // Always keep 50 as a base
+
+            if (parentNode) {
+                const nodeA = findNodeById(parentNode, divider.rectAId);
+                const nodeB = findNodeById(parentNode, divider.rectBId);
+
+                if (nodeA && nodeB) {
+                    const leftCount = countParallelLeaves(nodeA, orientation);
+                    const rightCount = countParallelLeaves(nodeB, orientation);
+                    const totalCount = leftCount + rightCount;
+
+                    if (totalCount > 1) {
+                        for (let i = 1; i < totalCount; i++) {
+                            dynamicSnaps.push((i / totalCount) * 100);
+                        }
+                    }
+                }
+            }
+
+            // Deduplicate
+            const uniqueSnaps = [...new Set(dynamicSnaps)];
+
+            for (const snapPoint of uniqueSnaps) {
                 // Target center is position at % of PARENT total size
                 const targetCenter = state.parentOrigin + (snapPoint / 100) * state.parentFullSize;
 
@@ -618,5 +642,23 @@ function stopDrag() {
     } else if (pB <= MIN_AREA_PERCENT) {
         deleteRectangle(rectB);
     }
+}
+
+function countParallelLeaves(node, orientation) {
+    if (!node || node.splitState === 'unsplit') {
+        return 1;
+    }
+    // If the node is split in the SAME orientation, sum the children
+    if (node.orientation === orientation) {
+        let sum = 0;
+        if (node.children) {
+            for (const child of node.children) {
+                sum += countParallelLeaves(child, orientation);
+            }
+        }
+        return sum;
+    }
+    // If split in ORTHOGONAL orientation, it counts as 1 block in this dimension
+    return 1;
 }
 
