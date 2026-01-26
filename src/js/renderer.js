@@ -525,10 +525,14 @@ function renderTextContent(container, node, startInEditMode = false, options = {
             renderAndRestoreFocus(getCurrentPage(), node.id);
         });
 
+        const textControls = document.createElement('div');
+        textControls.className = 'text-controls';
+        textControls.appendChild(alignBtn);
+        textControls.appendChild(removeBtn);
+
         editorContainer.appendChild(preview);
         editorContainer.appendChild(editor);
-        editorContainer.appendChild(alignBtn);
-        editorContainer.appendChild(removeBtn);
+        editorContainer.appendChild(textControls);
     } else {
         editorContainer.appendChild(preview);
         // We still append editor but it's hidden, to avoid breaking structure if CSS relies on it, 

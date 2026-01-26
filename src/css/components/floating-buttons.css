@@ -49,11 +49,13 @@
 
 /* Image controls container buttons should not be absolute */
 .image-controls,
-.empty-node-controls {
+.empty-node-controls,
+.text-controls {
     --btn-offset: calc(var(--paper-scale-ref, 1000px) * 0.01);
     position: absolute;
-    top: var(--btn-offset);
-    right: var(--btn-offset);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: none;
     gap: calc(var(--btn-offset) * 0.5);
     z-index: 220;
@@ -63,10 +65,13 @@
 
 .image-controls .remove-image-btn,
 .image-controls .flip-image-btn,
-.empty-node-controls .import-image-btn {
+.empty-node-controls .import-image-btn,
+.text-controls .remove-text-btn,
+.text-controls .align-text-btn {
     position: relative;
     top: auto;
     right: auto;
+    left: auto;
     display: flex;
     /* Override base display: none since parent handles visibility */
 }
@@ -107,14 +112,12 @@
 
 /* Show buttons when the splittable-rect is hovered */
 /* Note: The HTML structure varies slightly between text and images, so we target generic classes or specific parents */
-.splittable-rect[data-split-state="unsplit"].is-hovered-active .remove-text-btn,
-.splittable-rect[data-split-state="unsplit"].is-hovered-active .align-text-btn,
 .splittable-rect[data-split-state="unsplit"].is-hovered-active .image-controls,
 .splittable-rect[data-split-state="unsplit"].is-hovered-active .empty-node-controls,
-.splittable-rect[data-split-state="unsplit"]:focus-within .remove-text-btn,
-.splittable-rect[data-split-state="unsplit"]:focus-within .align-text-btn,
+.splittable-rect[data-split-state="unsplit"].is-hovered-active .text-controls,
 .splittable-rect[data-split-state="unsplit"]:focus-within .image-controls,
-.splittable-rect[data-split-state="unsplit"]:focus-within .empty-node-controls
+.splittable-rect[data-split-state="unsplit"]:focus-within .empty-node-controls,
+.splittable-rect[data-split-state="unsplit"]:focus-within .text-controls
 
 /* Legacy support */
     {
