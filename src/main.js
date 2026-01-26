@@ -74,7 +74,19 @@ function setupGlobalHandlers() {
             }
         }
 
+        // Global Tab navigation
+        if (e.key === 'Tab' && !e.shiftKey) {
+            const target = e.target;
 
+            // If we are on the body or workspace-wrapper, go to the layout
+            if (target === document.body || target.classList.contains('workspace-wrapper')) {
+                const firstRect = document.querySelector('.splittable-rect[data-split-state="unsplit"]');
+                if (firstRect) {
+                    e.preventDefault();
+                    firstRect.focus();
+                }
+            }
+        }
     });
 
     window.addEventListener('keyup', (e) => {
