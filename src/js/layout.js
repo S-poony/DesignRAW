@@ -368,19 +368,38 @@ export function snapDivider(focusedRect, direction) {
         SNAP_POINTS.forEach(p => addCandidate(remainingBackward * p / 100));
     }
 
-    // 4. Global Alignment Snaps
+    // 4. Global Alignment Snaps (Matching onDrag logic)
     const otherDividers = Array.from(document.querySelectorAll(`.divider[data-orientation="${targetDividerOrientation}"]`));
-    const parentEl = document.querySelector(`.splittable-rect[id="${targetParent.id}"]`) || document.getElementById(A4_PAPER_ID);
+    const parentEl = document.getElementById(targetParent.id) || document.getElementById(A4_PAPER_ID);
     const parentRect = parentEl.getBoundingClientRect();
+    const parentStyle = window.getComputedStyle(parentEl);
 
-    otherDividers.forEach(div => {
-        const divRect = div.getBoundingClientRect();
-        const divCenter = (targetDividerOrientation === 'vertical' ? divRect.left + divRect.width / 2 : divRect.top + divRect.height / 2);
-        const parentStart = (targetDividerOrientation === 'vertical' ? parentRect.left : parentRect.top);
-        const parentSize = (targetDividerOrientation === 'vertical' ? parentRect.width : parentRect.height);
-        const relPct = ((divCenter - parentStart) / parentSize) * 100;
-        addCandidate(relPct);
-    });
+    // Get the divider we are actually moving to compute specific available flex space
+    const movingDivider = document.querySelector(`.divider[data-parent-id="${targetParent.id}"][data-rect-a-id="${nodeA.id}"]`);
+    const movingDivSize = movingDivider ? (targetDividerOrientation === 'vertical' ? movingDivider.offsetWidth : movingDivider.offsetHeight) : 0;
+
+    const parentStart = (targetDividerOrientation === 'vertical' ? parentRect.left : parentRect.top);
+    const parentSize = (targetDividerOrientation === 'vertical' ? parentRect.width : parentRect.height);
+    const startBorder = (targetDividerOrientation === 'vertical' ? parseFloat(parentStyle.borderLeftWidth) : parseFloat(parentStyle.borderTopWidth)) || 0;
+    const endBorder = (targetDividerOrientation === 'vertical' ? parseFloat(parentStyle.borderRightWidth) : parseFloat(parentStyle.borderBottomWidth)) || 0;
+
+    const availableFlexSpace = parentSize - startBorder - endBorder - movingDivSize;
+
+    if (availableFlexSpace > 0) {
+        otherDividers.forEach(div => {
+            if (div === movingDivider) return;
+            const divRect = div.getBoundingClientRect();
+            const divCenter = (targetDividerOrientation === 'vertical' ? divRect.left + divRect.width / 2 : divRect.top + divRect.height / 2);
+
+            // Convert absolute center to our parent's local percentage that accounts for divider size
+            // Math matches onDrag: center = parentStart + border + (pct/100 * flexContentWidth) + (divSize/2)
+            const relCenter = divCenter - parentStart;
+            const flexPos = relCenter - startBorder - (movingDivSize / 2);
+            const relPct = (flexPos / availableFlexSpace) * 100;
+
+            addCandidate(relPct);
+        });
+    }
 
     // Convert back to numbers and sort
     const sortedCandidates = Array.from(candidatesSet).map(Number).sort((a, b) => a - b);
