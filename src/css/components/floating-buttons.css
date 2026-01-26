@@ -123,3 +123,10 @@
     {
     display: flex;
 }
+
+/* Hide controls in edit mode to avoid overlapping the editor */
+.splittable-rect.is-editing .image-controls,
+.splittable-rect.is-editing .empty-node-controls,
+.splittable-rect.is-editing .text-controls {
+    display: none !important;
+}
