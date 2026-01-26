@@ -12,7 +12,7 @@ import { setupGlobalErrorHandler } from './js/errorHandler.js';
 
 import { setupPageHandlers } from './js/pages.js';
 import { setupFileIOHandlers } from './js/fileIO.js';
-import { setupKeyboardNavigation, updateFocusableRects } from './js/keyboard.js';
+import { setupKeyboardNavigation } from './js/keyboard.js';
 import { shortcutsOverlay } from './js/ShortcutsOverlay.js';
 import { findNodeById } from './js/layout.js';
 import { setupPlatformAdapters } from './js/platform.js';
@@ -253,14 +253,12 @@ function initialize() {
 
     // Listen for layout updates to manage focus and reset selection state
     document.addEventListener('layoutUpdated', () => {
-        updateFocusableRects();
         lastHoveredRectId = null;
         // Recapture hover state after DOM elements were replaced.
         // We pass false for shouldFocus because we want to update the visual hover classes and overlay
         // but we DON'T want to steal focus from whatever the keyboard just selected.
         updateHoverAt(lastMousePos.x, lastMousePos.y, false);
     });
-    document.addEventListener('stateRestored', updateFocusableRects);
 
     // Handle settings updates that require re-render (breaking circular dependency)
     document.addEventListener('settingsUpdated', () => {
@@ -336,7 +334,6 @@ function initialize() {
 
     // Initial render from state
     renderLayout(document.getElementById('a4-paper'), getCurrentPage());
-    updateFocusableRects();
 
     // Auto-focus the first rectangle so keyboard shortcuts work immediately
     const firstRect = document.getElementById('rect-1');

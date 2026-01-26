@@ -59,6 +59,9 @@ function renderNodeRecursive(element, node, options) {
 function renderSplitNode(container, node, options) {
     container.classList.add(node.orientation === 'vertical' ? 'flex-row' : 'flex-col');
     container.setAttribute('data-split-state', 'split');
+    container.removeAttribute('tabindex');
+    container.removeAttribute('role');
+    container.removeAttribute('aria-label');
 
     const rectA = createDOMRect(node.children[0], node.orientation);
     const rectB = createDOMRect(node.children[1], node.orientation);
@@ -79,6 +82,12 @@ function renderLeafNode(container, node, options) {
     if (!options.hideControls) {
         container.setAttribute('tabindex', '0');
         container.setAttribute('role', 'button');
+
+        const hasContent = node.image || (node.text !== null && node.text !== undefined);
+        const label = hasContent
+            ? 'Content region. Click to split, Enter/Type to edit.'
+            : 'Empty region. Click to split, Enter/Type to write.';
+        container.setAttribute('aria-label', label);
     }
 
     if (node.image) {

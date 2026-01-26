@@ -252,28 +252,3 @@ function deleteFocusedRect(rect) {
     rect.dispatchEvent(clickEvent);
 }
 
-/**
- * Set tabindex for all leaf rectangles
- * Should be called after render updates
- */
-export function updateFocusableRects() {
-    // Remove tabindex from split parents (focus should only be on leaves)
-    document.querySelectorAll('.splittable-rect[data-split-state="split"]').forEach(el => {
-        el.removeAttribute('tabindex');
-        el.removeAttribute('role');
-        el.removeAttribute('aria-label');
-    });
-
-    // Add tabindex to leaves
-    document.querySelectorAll('.splittable-rect[data-split-state="unsplit"]').forEach(el => {
-        el.setAttribute('tabindex', '0');
-        el.setAttribute('role', 'button');
-
-        const hasContent = el.querySelector('img') || el.querySelector('.text-content');
-        const label = hasContent
-            ? 'Content region. Click to split, Enter/Type to edit.'
-            : 'Empty region. Click to split, Enter/Type to write.';
-
-        el.setAttribute('aria-label', label);
-    });
-}
