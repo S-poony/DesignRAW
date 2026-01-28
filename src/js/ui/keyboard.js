@@ -111,7 +111,7 @@ function handleKeyDown(e) {
             } else if (e.ctrlKey) {
                 const parentToMerge = findMergeableParent(focused, e.key);
                 if (parentToMerge) {
-                    mergeNodes(parentToMerge);
+                    mergeNodes(parentToMerge, focused.id);
                 }
             } else {
                 navigateRects(focused, e.key);

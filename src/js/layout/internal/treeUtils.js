@@ -134,9 +134,10 @@ function countNodesAlongBoundary(node, splitOrientation, isLeading) {
  * Merges nodes separated by a specific divider using surgical Tree Contraction.
  * Assumes isDividerMergeable(parentNode) is true.
  * @param {Object} parentNode The parent node of the divider
+ * @param {string} focusedNodeId The ID of the node initiating the merge (priority content)
  * @returns {Object} The updated node that replaces parentNode
  */
-export function mergeNodesInTree(parentNode) {
+export function mergeNodesInTree(parentNode, focusedNodeId) {
     const [childA, childB] = parentNode.children;
     const orientation = parentNode.orientation;
 
@@ -150,9 +151,17 @@ export function mergeNodesInTree(parentNode) {
     const leafA = getTouchingLeaf(childA, orientation, false); // Trailing edge
     const leafB = getTouchingLeaf(childB, orientation, true);  // Leading edge
 
-    // 2. Combine content
+    // 2. Combine content - Prioritize the focused node
     const hasContent = (n) => n && (n.image || (n.text !== null && n.text !== undefined));
-    const winner = hasContent(leafA) ? leafA : leafB;
+
+    let winner;
+    if (leafA.id === focusedNodeId && hasContent(leafA)) {
+        winner = leafA;
+    } else if (leafB.id === focusedNodeId && hasContent(leafB)) {
+        winner = leafB;
+    } else {
+        winner = hasContent(leafA) ? leafA : leafB;
+    }
 
     const mergedContent = {
         splitState: 'unsplit',

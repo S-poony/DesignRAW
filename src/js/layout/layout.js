@@ -214,9 +214,9 @@ export function findMergeableParent(focusedRect, direction) {
     return null;
 }
 
-export function mergeNodes(parentNode) {
+export function mergeNodes(parentNode, sourceNodeId) {
     saveState();
-    const merged = mergeNodesInTree(parentNode);
+    const merged = mergeNodesInTree(parentNode, sourceNodeId);
     if (merged) {
         renderAndRestoreFocus(getCurrentPage(), merged.id);
     }

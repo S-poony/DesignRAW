@@ -113,7 +113,7 @@ describe('Advanced Merge Logic (isDividerMergeable)', () => {
         // Merge A and B1.
         // childA is A, childB is BC. orientation is vertical.
         // leafA is A, leafB is B1.
-        const merged = mergeNodesInTree(parent);
+        const merged = mergeNodesInTree(parent, 'rect-A');
 
         // Children of P are now [Merged(A+B1), B2]
         expect(merged.children[0].size).toBe('58%');
@@ -151,7 +151,7 @@ describe('Advanced Merge Logic (isDividerMergeable)', () => {
         };
         // Merge A2 and B1.
         expect(isDividerMergeable(parent)).toBe(true);
-        const merged = mergeNodesInTree(parent);
+        const merged = mergeNodesInTree(parent, 'rect-A2');
 
         // P should now be A1 | [ Merged | B2 ]
         // A1 Abs: 20%. New size = 20%
@@ -167,5 +167,23 @@ describe('Advanced Merge Logic (isDividerMergeable)', () => {
         expect(inner.children[0].size).toBe('38%');
         expect(inner.children[1].id).toBe('rect-B2');
         expect(inner.children[1].size).toBe('42%');
+    });
+
+    it('should prioritize initiating node content in merge', () => {
+        const parent = {
+            splitState: 'split',
+            orientation: 'vertical',
+            children: [
+                { id: 'A', splitState: 'unsplit', text: 'Content A' },
+                { id: 'B', splitState: 'unsplit', text: 'Content B' }
+            ]
+        };
+        // Merge from A
+        const mergedFromA = mergeNodesInTree(JSON.parse(JSON.stringify(parent)), 'A');
+        expect(mergedFromA.text).toBe('Content A');
+
+        // Merge from B
+        const mergedFromB = mergeNodesInTree(JSON.parse(JSON.stringify(parent)), 'B');
+        expect(mergedFromB.text).toBe('Content B');
     });
 });
