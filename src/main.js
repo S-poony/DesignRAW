@@ -277,6 +277,9 @@ function initialize() {
     // Global click delegation for rectangles in the paper
 
     document.addEventListener('mousemove', (e) => {
+        // Optimization: Skip hover updates during active drag operations to prevent lag
+        if (state.activeDivider || dragDropService.isDragging()) return;
+
         lastMousePos = { x: e.clientX, y: e.clientY };
         updateHoverAt(e.clientX, e.clientY);
     });
