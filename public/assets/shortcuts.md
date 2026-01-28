@@ -9,6 +9,7 @@
 `arrows` = navigation (*layout*)
 `shift + arrows` = move content
 `alt + arrows` = move divider (*grows the rectangle in the direction of the arrow*)
+`ctrl + arrows` = merge rectangle with neighbor (*deletes divider if it separates only two rectangles*)
 `enter` = select
 
 ### Empty rectangle
