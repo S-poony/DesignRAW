@@ -186,4 +186,20 @@ describe('Advanced Merge Logic (isDividerMergeable)', () => {
         const mergedFromB = mergeNodesInTree(JSON.parse(JSON.stringify(parent)), 'B');
         expect(mergedFromB.text).toBe('Content B');
     });
+
+    it('should handle arbitrary future content types', () => {
+        const parent = {
+            splitState: 'split',
+            orientation: 'vertical',
+            children: [
+                { id: 'A', splitState: 'unsplit', pizzaType: 'Marguerita' },
+                { id: 'B', splitState: 'unsplit', pizzaType: 'Napoli' }
+            ]
+        };
+        // Merge from B
+        const merged = mergeNodesInTree(parent, 'B');
+        expect(merged.pizzaType).toBe('Napoli');
+        // Structural properties should be clean
+        expect(merged.id).toBeUndefined(); // parentNode's ID is usually preserved or promoted elsewhere, but mergedContent itself has no ID
+    });
 });

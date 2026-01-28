@@ -152,25 +152,39 @@ export function mergeNodesInTree(parentNode, focusedNodeId) {
     const leafB = getTouchingLeaf(childB, orientation, true);  // Leading edge
 
     // 2. Combine content - Prioritize the focused node
-    const hasContent = (n) => n && (n.image || (n.text !== null && n.text !== undefined));
+    // A node has content if it has any properties other than the structural ones
+    const structuralKeys = ['id', 'splitState', 'children', 'orientation', 'size'];
+    const getContent = (node) => {
+        const content = {};
+        Object.entries(node).forEach(([key, value]) => {
+            if (!structuralKeys.includes(key) && value !== null && value !== undefined) {
+                content[key] = (typeof value === 'object') ? JSON.parse(JSON.stringify(value)) : value;
+            }
+        });
+        return content;
+    };
 
-    let winner;
-    if (leafA.id === focusedNodeId && hasContent(leafA)) {
-        winner = leafA;
-    } else if (leafB.id === focusedNodeId && hasContent(leafB)) {
-        winner = leafB;
-    } else {
-        winner = hasContent(leafA) ? leafA : leafB;
-    }
+    const contentA = getContent(leafA);
+    const contentB = getContent(leafB);
+    const hasContentA = Object.keys(contentA).length > 0;
+    const hasContentB = Object.keys(contentB).length > 0;
 
-    const mergedContent = {
+    let mergedContent = {
         splitState: 'unsplit',
         children: null,
-        orientation: null,
-        image: winner.image ? { ...winner.image } : null,
-        text: winner.text,
-        textAlign: winner.textAlign
+        orientation: null
     };
+
+    let winnerContent;
+    if (leafA.id === focusedNodeId && hasContentA) {
+        winnerContent = contentA;
+    } else if (leafB.id === focusedNodeId && hasContentB) {
+        winnerContent = contentB;
+    } else {
+        winnerContent = hasContentA ? contentA : contentB;
+    }
+
+    Object.assign(mergedContent, winnerContent);
 
     // 3. Tree Contraction Logic
     // Recursive helper to update leaf within a subtree
