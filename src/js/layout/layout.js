@@ -4,7 +4,7 @@ import { saveState } from '../io/history.js';
 import { renderLayout } from './renderer.js';
 
 // Internal modules
-import { findNodeById as findNodeByIdInternal, findParentNode as findParentNodeInternal, countParallelLeaves } from './internal/treeUtils.js';
+import { findNodeById as findNodeByIdInternal, findParentNode as findParentNodeInternal, countParallelLeaves, deleteNodeFromTree } from './internal/treeUtils.js';
 import { snapDivider as snapDividerInternal } from './internal/snapping.js';
 import { renderAndRestoreFocus as renderAndRestoreFocusInternal } from './internal/focusManager.js';
 import * as dragInternal from './internal/dragHandler.js';
@@ -113,24 +113,10 @@ export function createTextInRect(rectId, initialText = null) {
 export function deleteRectangle(rectElement) {
     if (rectElement.id === A4_PAPER_ID) return;
 
-    const parentNode = findParentNodeInternal(getCurrentPage(), rectElement.id);
-    if (!parentNode) return;
-
-    const siblingNode = parentNode.children.find(c => c.id !== rectElement.id);
-
-    parentNode.splitState = siblingNode.splitState;
-    if (siblingNode.splitState === 'split') {
-        parentNode.children = siblingNode.children;
-        parentNode.orientation = siblingNode.orientation;
-    } else {
-        parentNode.children = null;
-        parentNode.image = siblingNode.image;
-        parentNode.text = siblingNode.text;
-        parentNode.textAlign = siblingNode.textAlign;
-        parentNode.orientation = null;
+    const modifiedParent = deleteNodeFromTree(getCurrentPage(), rectElement.id);
+    if (modifiedParent) {
+        renderAndRestoreFocus(getCurrentPage(), modifiedParent.id);
     }
-
-    renderAndRestoreFocus(getCurrentPage(), parentNode.id);
 }
 
 export function toggleTextAlignment(rectId) {
@@ -193,6 +179,6 @@ export function startEdgeDrag(event, edge) {
 // Actually dragHandler uses callbacks where needed.
 // Global stopDrag listener is handled within dragHandler's event listeners but we provide a facade if needed.
 export function stopDrag() {
-    dragInternal.stopDrag((el) => deleteRectangle(el));
+    dragInternal.stopDrag();
 }
 

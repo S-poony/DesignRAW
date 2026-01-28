@@ -2,8 +2,9 @@ import { state, getCurrentPage } from '../../core/state.js';
 import { saveState } from '../../io/history.js';
 import { SNAP_THRESHOLD, MIN_AREA_PERCENT } from '../../core/constants.js';
 import { renderLayout } from '../renderer.js';
-import { findNodeById } from './treeUtils.js';
+import { findNodeById, deleteNodeFromTree } from './treeUtils.js';
 import { calculateDynamicSnaps } from './snapping.js';
+import { renderAndRestoreFocus } from './focusManager.js';
 
 /**
  * Starts the drag operation for a divider
@@ -201,9 +202,8 @@ function onDrag(event) {
 
 /**
  * Internal stopDrag function (exported for manual cleanup if needed, but usually bound to listeners)
- * @param {Function} deleteRectangleCallback (element) => void
  */
-export function stopDrag(deleteRectangleCallback) {
+export function stopDrag() {
     if (!state.activeDivider) return;
 
     const divider = state.activeDivider;
@@ -233,8 +233,10 @@ export function stopDrag(deleteRectangleCallback) {
     state.activeDivider = null;
 
     if (pA <= MIN_AREA_PERCENT) {
-        deleteRectangleCallback(rectA);
+        const modifiedParent = deleteNodeFromTree(getCurrentPage(), divider.rectAId);
+        if (modifiedParent) renderAndRestoreFocus(getCurrentPage(), modifiedParent.id);
     } else if (pB <= MIN_AREA_PERCENT) {
-        deleteRectangleCallback(rectB);
+        const modifiedParent = deleteNodeFromTree(getCurrentPage(), divider.rectBId);
+        if (modifiedParent) renderAndRestoreFocus(getCurrentPage(), modifiedParent.id);
     }
 }
