@@ -30,7 +30,7 @@ test.describe('Performance Evaluation', () => {
             }
         };
 
-        const TARGET_LEAVES = 16;
+        const TARGET_LEAVES = 32;
         await buildTree(TARGET_LEAVES);
 
         const finalCount = await page.locator('.splittable-rect[data-split-state="unsplit"]').count();
@@ -61,13 +61,12 @@ test.describe('Performance Evaluation', () => {
         });
 
         const duration = Date.now() - start;
-        console.log(`Full re-render duration (including click interaction): ${duration}ms`);
-        // We expect < 500ms for a tree of this size normally, but full full render is the goal
+        console.log(`Full re-render duration (including click interaction) for 32 nodes: ${duration}ms`);
     });
 
     test('measure drag performance', async ({ page }) => {
-        // Build a tree of 8 nodes
-        for (let i = 1; i < 8; i++) {
+        // Build a tree of 16 nodes
+        for (let i = 1; i < 16; i++) {
             await page.locator('.splittable-rect[data-split-state="unsplit"]').first().click({ position: { x: 10, y: 10 }, force: true });
             await expect(page.locator('.splittable-rect[data-split-state="unsplit"]')).toHaveCount(i + 1);
         }
@@ -95,8 +94,8 @@ test.describe('Performance Evaluation', () => {
         console.log('Starting drag sequence...');
         await page.mouse.move(dividerBox.x + dividerBox.width / 2, dividerBox.y + dividerBox.height / 2);
         await page.mouse.down();
-        // Move back and forth 20 times quickly
-        for (let i = 0; i < 20; i++) {
+        // Move back and forth 30 times quickly for a better sample
+        for (let i = 0; i < 30; i++) {
             await page.mouse.move(dividerBox.x + dividerBox.width / 2, dividerBox.y + 100 + (i % 2 === 0 ? 50 : -50));
             await new Promise(r => setTimeout(r, 16));
         }
@@ -109,6 +108,6 @@ test.describe('Performance Evaluation', () => {
             const max = count > 0 ? Math.max(...window.frameTimes) : 0;
             return { avg, max, count };
         });
-        console.log(`Drag Performance (Baseline): Avg Frame: ${stats.avg.toFixed(2)}ms, Max Frame (Jank): ${stats.max.toFixed(2)}ms, Samples: ${stats.count}`);
+        console.log(`Drag Performance (Baseline - 16 nodes): Avg Frame: ${stats.avg.toFixed(2)}ms, Max Frame (Jank): ${stats.max.toFixed(2)}ms, Samples: ${stats.count}`);
     });
 });

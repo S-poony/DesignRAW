@@ -7,6 +7,12 @@ import { state } from '../../core/state.js';
  * @returns {Object|null}
  */
 export function findNodeById(root, id) {
+    // Attempt O(1) lookup first if it exists in state
+    if (state.nodeMap && state.nodeMap.has(id)) {
+        return state.nodeMap.get(id);
+    }
+
+    // Fallback to recursive search if map is not ready or root is different
     if (root.id === id) return root;
     if (root.children) {
         for (const child of root.children) {

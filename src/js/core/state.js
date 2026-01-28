@@ -8,7 +8,8 @@ export let state = {
     // Multi-page support
     pages: [], // Array of layout objects
     currentPageIndex: 0,
-    hoveredRectId: null
+    hoveredRectId: null,
+    nodeMap: new Map() // O(1) lookup for current page
 };
 
 // Initialize with one empty page
@@ -105,4 +106,25 @@ export function reorderPage(fromIndex, toIndex) {
 
 export function updateLayout(newLayout) {
     state.pages[state.currentPageIndex] = newLayout;
+    syncNodeMap();
 }
+
+/**
+ * Rebuilds the O(1) lookup map for the current page
+ */
+export function syncNodeMap() {
+    state.nodeMap.clear();
+    const page = getCurrentPage();
+    if (!page) return;
+
+    const traverse = (node) => {
+        state.nodeMap.set(node.id, node);
+        if (node.children) {
+            node.children.forEach(traverse);
+        }
+    };
+    traverse(page);
+}
+
+// Initial sync
+syncNodeMap();
